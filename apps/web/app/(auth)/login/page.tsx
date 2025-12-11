@@ -1,31 +1,19 @@
-"use client";
+import { GalleryVerticalEnd } from "lucide-react";
 
-import Link from "next/link";
 import { LoginForm } from "./login-form";
 
 export default function LoginPage() {
   return (
-    <div className="flex h-screen w-full flex-col items-center justify-center gap-6">
-      <div className="flex w-96 flex-col items-center justify-center rounded-lg border p-6 shadow-sm">
-        <div className="w-full">
-          <h1 className="mb-1 font-bold text-2xl">Login</h1>
-          <p className="mb-4 text-muted-foreground text-sm">
-            Login to your account to continue
-          </p>
-          <LoginForm />
-        </div>
+    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-4 md:p-10">
+      <div className="flex w-full max-w-sm flex-col gap-6">
+        <a className="flex items-center gap-2 self-center font-medium" href="/">
+          <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <GalleryVerticalEnd className="size-4" />
+          </div>
+          Acme Inc.
+        </a>
+        <LoginForm />
       </div>
-
-      <p className="w-64 text-center text-muted-foreground text-sm">
-        By logging in, you agree to our{" "}
-        <Link className="underline" href={"/terms"}>
-          Terms of Service
-        </Link>{" "}
-        and{" "}
-        <Link className="underline" href={"/privacy"}>
-          Privacy Policy
-        </Link>
-      </p>
     </div>
   );
 }
