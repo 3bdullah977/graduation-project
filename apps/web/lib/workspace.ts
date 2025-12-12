@@ -33,6 +33,16 @@ export const createWorkspace = async (name: string, slug: string) => {
   return res.data;
 };
 
+export const findWorkspaceBySlug = async (slug: string) => {
+  const res = await authFetch<{ workspace: Workspace }>(
+    `${BACKEND_URL}/workspaces/${slug}`,
+    {
+      method: "GET",
+    }
+  );
+  return res.data;
+};
+
 export const listWorkspaces = async () => {
   const res = await authFetch<{ workspaces: Workspace[] }>(
     `${BACKEND_URL}/workspaces`,
