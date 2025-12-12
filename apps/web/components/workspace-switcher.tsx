@@ -1,8 +1,11 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ExternalLink, Plus, Users } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,21 +21,28 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { attempt } from "@/lib/error-handling";
+import { listWorkspaces, WorkSpace } from "@/lib/workspace";
 
-export function WorkspaceSwitcher({
-  workspaces,
-}: {
-  workspaces: {
-    name: string;
-    logo: React.ElementType;
-  }[];
-}) {
+export function WorkspaceSwitcher() {
   const { isMobile } = useSidebar();
-  const [activeWorkspace, setActiveWorkspace] = useState(workspaces[0]);
+  const [activeWorkspace, setActiveWorkspace] = useState<WorkSpace | undefined>(
+    undefined
+  );
+  const { data: workspaces } = useQuery({
+    queryKey: ["workspaces"],
+    queryFn: async () => {
+      const [result, error] = await attempt(listWorkspaces());
+      if (error || !result) {
+        toast.error("Error while fetching workspaces");
+        return;
+      }
+      setActiveWorkspace(result.data.workspaces[0]);
+      return result.data.workspaces;
+    },
+  });
 
-  if (!activeWorkspace) {
-    return null;
-  }
+  const router = useRouter();
 
   return (
     <SidebarMenu>
@@ -45,12 +55,12 @@ export function WorkspaceSwitcher({
             >
               <div className="flex aspect-square size-6 items-center justify-center rounded-sm bg-primary text-white">
                 <span className="font-semibold text-xs">
-                  {activeWorkspace.name.slice(0, 2).toUpperCase()}
+                  {activeWorkspace?.name.slice(0, 2).toUpperCase()}
                 </span>
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">
-                  {activeWorkspace.name}
+                  {activeWorkspace?.name}
                 </span>
               </div>
               <ChevronDown className="ml-auto size-4" />
@@ -65,18 +75,26 @@ export function WorkspaceSwitcher({
             <DropdownMenuLabel className="text-muted-foreground text-xs">
               Workspaces
             </DropdownMenuLabel>
-            {workspaces.map((workspace) => (
+            {workspaces?.slice(0, 2).map((workspace) => (
               <DropdownMenuItem
                 className="gap-2 p-2"
                 key={workspace.name}
-                onClick={() => setActiveWorkspace(workspace)}
+                onClick={() => {
+                  setActiveWorkspace(workspace);
+                  router.push(`/${encodeURIComponent(workspace.slug)}`);
+                }}
               >
-                <div className="flex size-6 items-center justify-center rounded-md border">
-                  <workspace.logo className="size-3.5 shrink-0" />
+                <div className="flex size-6 items-center justify-center rounded-md border text-muted-foreground text-xs">
+                  {workspace.name.slice(0, 2).toUpperCase()}
                 </div>
                 {workspace.name}
               </DropdownMenuItem>
             ))}
+            {workspaces && workspaces.length > 1 ? (
+              <DropdownMenuItem className="text-muted-foreground">
+                See more
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2">
               <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
