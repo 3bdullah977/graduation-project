@@ -111,12 +111,17 @@ export function WorkspaceSwitcher() {
             ) : null}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2">
-              <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
-                <Users className="size-4" />
-              </div>
-              <div className="font-medium text-muted-foreground">
-                Invite and add members
-              </div>
+              <Link
+                className="flex items-center gap-2"
+                href={`/${encodeURIComponent(activeWorkspace?.slug ?? "")}/settings/members`}
+              >
+                <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+                  <Users className="size-4" />
+                </div>
+                <div className="font-medium text-muted-foreground">
+                  Invite and add members
+                </div>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="gap-2 p-2">
               <Link
