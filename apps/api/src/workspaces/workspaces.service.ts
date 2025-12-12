@@ -6,8 +6,7 @@ import {
 import { and, desc, eq, or } from "drizzle-orm";
 import { ok } from "@/common/response";
 import { db } from "@/db";
-import { users } from "@/db/schema";
-import { workspaceMembers, workspaces } from "@/db/schema/workspace";
+import { users, workspaceMembers, workspaces } from "@/db/schema";
 import { attempt } from "@/lib/error-handling";
 
 @Injectable()
@@ -46,6 +45,19 @@ export class WorkspacesService {
     );
     if (error) {
       throw new InternalServerErrorException("Failed to create workspace");
+    }
+
+    const [, addOwnerError] = await attempt(
+      db.insert(workspaceMembers).values({
+        workspaceId: workspace?.[0]?.id,
+        userId: ownerId,
+        role: "admin",
+      })
+    );
+    if (addOwnerError) {
+      throw new InternalServerErrorException(
+        "Failed to add owner to workspace"
+      );
     }
 
     return ok({ workspaceId: workspace?.[0]?.id });

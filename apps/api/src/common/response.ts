@@ -1,4 +1,4 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException } from "@nestjs/common";
 
 export type OkResponse<T = unknown> = {
   ok: true;
@@ -18,7 +18,7 @@ export function ok<T = unknown>(data: T): OkResponse<T> {
 
 export function error(
   messageOrException: string | HttpException,
-  details?: unknown,
+  details?: unknown
 ): ErrorResponse {
   if (messageOrException instanceof HttpException) {
     const response = messageOrException.getResponse() as
@@ -29,10 +29,13 @@ export function error(
     let message: string;
     let extra: any = {};
 
-    if (typeof response === 'string') {
+    if (typeof response === "string") {
       message = response;
     } else {
-      message = (response.message as string) ?? (response.error as string) ?? 'Unexpected error';
+      message =
+        (response.message as string) ??
+        (response.error as string) ??
+        "Unexpected error";
       extra = response;
     }
 
@@ -46,5 +49,3 @@ export function error(
 
   return { ok: false, error: messageOrException, details };
 }
-
-
