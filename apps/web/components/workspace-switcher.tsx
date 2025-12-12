@@ -1,10 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ExternalLink, Plus, Users } from "lucide-react";
+import { useAtom } from "jotai";
+import { ChevronDown, ExternalLink, Plus, Settings, Users } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,14 +21,14 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { currentWorkspaceAtom } from "@/lib/atoms/current-workspace";
 import { attempt } from "@/lib/error-handling";
-import { listWorkspaces, Workspace } from "@/lib/workspace";
+import { findWorkspaceBySlug, listWorkspaces } from "@/lib/workspace";
 
 export function WorkspaceSwitcher() {
+  const params = useParams();
   const { isMobile } = useSidebar();
-  const [activeWorkspace, setActiveWorkspace] = useState<Workspace | undefined>(
-    undefined
-  );
+  const [activeWorkspace, setActiveWorkspace] = useAtom(currentWorkspaceAtom);
   const { data: workspaces } = useQuery({
     queryKey: ["workspaces"],
     queryFn: async () => {
@@ -42,6 +42,20 @@ export function WorkspaceSwitcher() {
     },
   });
 
+  const { data: _workspace } = useQuery({
+    queryKey: ["workspace", params.workspace as string],
+    queryFn: async () => {
+      const [result, error] = await attempt(
+        findWorkspaceBySlug(params.workspace as string)
+      );
+      if (error || !result) {
+        toast.error("Error while fetching workspace");
+        return;
+      }
+      setActiveWorkspace(result?.data.workspace);
+      return result?.data.workspace;
+    },
+  });
   const router = useRouter();
 
   return (
@@ -103,6 +117,19 @@ export function WorkspaceSwitcher() {
               <div className="font-medium text-muted-foreground">
                 Invite and add members
               </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="gap-2 p-2">
+              <Link
+                className="flex items-center gap-2"
+                href={`/${encodeURIComponent(activeWorkspace?.slug ?? "")}/settings/preferences`}
+              >
+                <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+                  <Settings className="size-4" />
+                </div>
+                <div className="font-medium text-muted-foreground">
+                  Settings
+                </div>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="gap-2 p-2">
               <Link className="flex items-center gap-2" href="/workspaces/new">
