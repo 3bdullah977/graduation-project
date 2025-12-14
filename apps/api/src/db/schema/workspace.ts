@@ -16,6 +16,7 @@ export const workspaces = pgTable("workspaces", {
   ownerId: text("owner_id")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
+  accessedAt: timestamp("accessed_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .$onUpdate(() => /* @__PURE__ */ new Date())

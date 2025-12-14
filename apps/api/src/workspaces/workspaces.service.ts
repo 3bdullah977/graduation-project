@@ -89,7 +89,7 @@ export class WorkspacesService {
         .select()
         .from(workspaces)
         .where(eq(workspaces.ownerId, ownerId))
-        .orderBy(desc(workspaces.createdAt))
+        .orderBy(desc(workspaces.accessedAt))
     );
     if (error) {
       throw new InternalServerErrorException("Failed to get workspaces");
@@ -154,5 +154,21 @@ export class WorkspacesService {
       throw new InternalServerErrorException("Failed to get workspace members");
     }
     return ok({ members: members ?? [] });
+  }
+
+  async updateWorkspaceAccessedAt(slug: string, userId: string) {
+    const [workspace, error] = await attempt(
+      db
+        .update(workspaces)
+        .set({ accessedAt: new Date() })
+        .where(and(eq(workspaces.slug, slug), eq(workspaces.ownerId, userId)))
+        .returning({ id: workspaces.id })
+    );
+    if (error) {
+      throw new InternalServerErrorException(
+        "Failed to update workspace accessed at"
+      );
+    }
+    return ok({ success: true, workspaceId: workspace?.[0]?.id ?? null });
   }
 }

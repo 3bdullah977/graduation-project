@@ -5,6 +5,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
 } from "@nestjs/common";
 import { ApiCookieAuth } from "@nestjs/swagger";
 import { Session, type UserSession } from "@thallesp/nestjs-better-auth";
@@ -65,6 +66,17 @@ export class WorkspacesController {
       workspaceId,
       body.userId,
       body.role
+    );
+  }
+
+  @Put(":slug/accessed-at")
+  async updateWorkspaceAccessedAt(
+    @Param("slug") slug: string,
+    @Session() session: UserSession
+  ) {
+    return await this.workspacesService.updateWorkspaceAccessedAt(
+      slug,
+      session.user.id
     );
   }
 }
