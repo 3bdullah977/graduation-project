@@ -1,10 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +35,7 @@ const schema = z.object({
 
 export function LoginForm() {
   const router = useRouter();
+  const auth = authClient.useSession();
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -43,6 +45,33 @@ export function LoginForm() {
     },
     mode: "onChange",
   });
+
+  const { data: workspacesData } = useQuery({
+    queryKey: ["workspaces"],
+    queryFn: async () => {
+      const [result, error] = await attempt(listWorkspaces(1, 1));
+      if (error || !result) {
+        return { workspaces: [], total: 0 };
+      }
+      return result.data;
+    },
+    enabled:
+      !!auth.data?.session?.expiresAt &&
+      auth.data.session.expiresAt > new Date(),
+  });
+
+  useEffect(() => {
+    if (
+      auth.data?.session?.expiresAt &&
+      auth.data.session.expiresAt > new Date() &&
+      workspacesData?.workspaces &&
+      workspacesData.workspaces.length > 0
+    ) {
+      router.push(
+        `/${encodeURIComponent(workspacesData.workspaces[0]?.slug ?? "")}`
+      );
+    }
+  }, [auth.data?.session?.expiresAt, workspacesData, router]);
 
   const { isSubmitting, isValid } = form.formState;
 
@@ -54,9 +83,11 @@ export function LoginForm() {
     if (res?.error) {
       form.setError("root", { message: res?.error.message });
     } else {
-      const [result, error] = await attempt(listWorkspaces());
+      const [result, error] = await attempt(listWorkspaces(1, 1));
       if (error || !result) {
-        toast.error("Error while fetching workspaces");
+        form.setError("root", {
+          message: "Failed to fetch workspaces. Please try again.",
+        });
         return;
       }
       if (result?.data.workspaces.length >= 1) {
