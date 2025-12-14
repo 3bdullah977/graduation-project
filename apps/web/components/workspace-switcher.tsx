@@ -34,17 +34,17 @@ export function WorkspaceSwitcher() {
   const { data: workspaces } = useQuery({
     queryKey: ["workspaces"],
     queryFn: async () => {
-      const [result, error] = await attempt(listWorkspaces());
+      const [result, error] = await attempt(listWorkspaces(1, 2));
       if (error || !result) {
         toast.error("Error while fetching workspaces");
         return;
       }
       if (result.data.workspaces.length > 0) {
         setActiveWorkspace(result.data.workspaces[0]);
-        return result.data.workspaces;
+        return result.data;
       }
       router.push("/workspaces/new");
-      return [];
+      return { workspaces: [], total: 0 };
     },
     enabled: !!slug,
   });
@@ -93,7 +93,7 @@ export function WorkspaceSwitcher() {
             <DropdownMenuLabel className="text-muted-foreground text-xs">
               Workspaces
             </DropdownMenuLabel>
-            {workspaces?.slice(0, 2).map((workspace) => (
+            {workspaces?.workspaces?.slice(0, 2).map((workspace) => (
               <DropdownMenuItem
                 className="gap-2 p-2"
                 key={workspace.name}
@@ -108,11 +108,13 @@ export function WorkspaceSwitcher() {
                 {workspace.name}
               </DropdownMenuItem>
             ))}
-            {workspaces && workspaces.length > 1 ? (
-              <DropdownMenuItem className="text-muted-foreground">
-                See more
+            {(workspaces?.total ?? 0) > 2 && (
+              <DropdownMenuItem asChild>
+                <Link className="text-muted-foreground" href="/workspaces">
+                  See more
+                </Link>
               </DropdownMenuItem>
-            ) : null}
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2">
               <Link

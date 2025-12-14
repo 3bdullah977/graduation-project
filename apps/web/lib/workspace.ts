@@ -8,6 +8,7 @@ export type Workspace = {
   ownerId: string;
   createdAt: Date;
   updatedAt: Date;
+  accessedAt: Date;
 };
 
 export type WorkspaceMember = {
@@ -43,9 +44,9 @@ export const findWorkspaceBySlug = async (slug: string) => {
   return res.data;
 };
 
-export const listWorkspaces = async () => {
-  const res = await authFetch<{ workspaces: Workspace[] }>(
-    `${BACKEND_URL}/workspaces`,
+export const listWorkspaces = async (page: number, limit: number) => {
+  const res = await authFetch<{ workspaces: Workspace[]; total: number }>(
+    `${BACKEND_URL}/workspaces?page=${page}&limit=${limit}`,
     {
       method: "GET",
     }

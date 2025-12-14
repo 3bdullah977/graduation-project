@@ -3,9 +3,11 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Post,
   Put,
+  Query,
 } from "@nestjs/common";
 import { ApiCookieAuth } from "@nestjs/swagger";
 import { Session, type UserSession } from "@thallesp/nestjs-better-auth";
@@ -33,8 +35,13 @@ export class WorkspacesController {
   @Get()
   async list(
     @Session() session: UserSession,
+    @Query("page", ParseIntPipe) page: number = 1,
+    @Query("limit", ParseIntPipe) limit: number = 10
   ) {
+    const offset = (page - 1) * limit;
     return await this.workspacesService.getWorkspaces(
+      offset,
+      limit,
       session.user.id
     );
   }

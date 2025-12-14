@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import { and, desc, eq, or } from "drizzle-orm";
+import { and, count, desc, eq, or } from "drizzle-orm";
 import { ok } from "@/common/response";
 import { db } from "@/db";
 import { users, workspaceMembers, workspaces } from "@/db/schema";
@@ -83,18 +83,33 @@ export class WorkspacesService {
     return ok({ workspace: workspace?.[0] });
   }
 
-  async getWorkspaces(ownerId: string) {
+  async getWorkspaces(offset: number, limit: number, ownerId: string) {
+    const [total, totalError] = await attempt(
+      db
+        .select({ count: count(workspaces.id) })
+        .from(workspaces)
+        .where(eq(workspaces.ownerId, ownerId))
+    );
+    if (totalError || total?.[0]?.count === undefined) {
+      throw new InternalServerErrorException("Failed to get total workspaces");
+    }
+
     const [ownerWorkspaces, error] = await attempt(
       db
         .select()
         .from(workspaces)
         .where(eq(workspaces.ownerId, ownerId))
         .orderBy(desc(workspaces.accessedAt))
+        .offset(offset)
+        .limit(limit)
     );
     if (error) {
       throw new InternalServerErrorException("Failed to get workspaces");
     }
-    return ok({ workspaces: ownerWorkspaces ?? [] });
+    return ok({
+      workspaces: ownerWorkspaces ?? [],
+      total: total?.[0]?.count,
+    });
   }
 
   async addMemberToWorkspace(
