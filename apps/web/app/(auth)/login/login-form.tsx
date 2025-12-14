@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
+import { attempt } from "@/lib/error-handling";
+import { listWorkspaces } from "@/lib/workspace";
 
 const schema = z.object({
   email: z.email(),
@@ -51,7 +54,18 @@ export function LoginForm() {
     if (res?.error) {
       form.setError("root", { message: res?.error.message });
     } else {
-      router.push("/");
+      const [result, error] = await attempt(listWorkspaces());
+      if (error || !result) {
+        toast.error("Error while fetching workspaces");
+        return;
+      }
+      if (result?.data.workspaces.length >= 1) {
+        router.push(
+          `/${encodeURIComponent(result.data.workspaces[0]?.slug ?? "")}`
+        );
+      } else {
+        router.push("/workspaces/new");
+      }
     }
   }
 
@@ -60,9 +74,7 @@ export function LoginForm() {
       <Card className="rounded-xl">
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>
-            Login with your Apple or Google account
-          </CardDescription>
+          <CardDescription>Login with your email and password</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -118,7 +130,11 @@ export function LoginForm() {
                 )}
                 rules={{ required: "Password is required" }}
               />
-              <Button className="w-full" disabled={isSubmitting} type="submit">
+              <Button
+                className="w-full"
+                disabled={isSubmitting || !isValid}
+                type="submit"
+              >
                 {isSubmitting ? (
                   <Loader className="size-4 animate-spin" />
                 ) : (
@@ -136,7 +152,7 @@ export function LoginForm() {
         </CardContent>
       </Card>
       <div className="text-balance text-center text-muted-foreground text-xs *:[a]:underline *:[a]:underline-offset-4 *:[a]:hover:text-primary">
-        By clicking continue, you agree to our{" "}
+        By clicking login, you agree to our{" "}
         <a href="/terms">Terms of Service</a> and{" "}
         <a href="/privacy">Privacy Policy</a>.
       </div>
