@@ -17,6 +17,7 @@ export type WorkspaceMember = {
   email: string | null;
   image: string | null;
   role: "admin" | "developer" | "viewer";
+  workspaceId: string;
   addedAt: Date;
 };
 
@@ -83,6 +84,21 @@ export const updateWorkspaceAccessedAt = async (slug: string) => {
     `${BACKEND_URL}/workspaces/${slug}/accessed-at`,
     {
       method: "PUT",
+    }
+  );
+  return res.data;
+};
+
+export const updateMemberRole = async (
+  workspaceId: string,
+  memberId: number,
+  role: "admin" | "developer" | "viewer"
+) => {
+  const res = await authFetch<{ success: boolean }>(
+    `${BACKEND_URL}/workspaces/${workspaceId}/members/${memberId}/role`,
+    {
+      method: "PUT",
+      data: { role },
     }
   );
   return res.data;

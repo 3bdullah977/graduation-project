@@ -37,7 +37,7 @@ export default function MembersPage() {
   });
 
   const { data: membersData, isLoading } = useQuery({
-    queryKey: ["workspace-members", slug],
+    queryKey: ["workspace-members", workspaceData?.id],
     queryFn: async () => {
       if (!workspaceData?.id) {
         return [];
