@@ -66,14 +66,13 @@ export const getWorkspaceMembers = async (workspaceId: string) => {
 
 export const addMemberToWorkspace = async (
   workspaceId: string,
-  userId: string,
-  role: "admin" | "developer" | "viewer"
+  emails: string[]
 ) => {
   const res = await authFetch<{ success: boolean }>(
     `${BACKEND_URL}/workspaces/${workspaceId}/members`,
     {
       method: "POST",
-      data: { userId, role },
+      data: { emails },
     }
   );
   return res.data;
