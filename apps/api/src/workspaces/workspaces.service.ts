@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -175,6 +176,7 @@ export class WorkspacesService {
       db
         .select({
           id: workspaceMembers.id,
+          workspaceId: workspaceMembers.workspaceId,
           name: users.name,
           email: users.email,
           image: users.image,
@@ -206,5 +208,51 @@ export class WorkspacesService {
       );
     }
     return ok({ success: true, workspaceId: workspace?.[0]?.id ?? null });
+  }
+
+  async updateMemberRole(
+    userId: string,
+    workspaceId: string,
+    memberId: number,
+    role: "admin" | "developer" | "viewer"
+  ) {
+    const [isAdmin, isAdminError] = await attempt(
+      db
+        .select({ isAdmin: eq(workspaceMembers.role, "admin") })
+        .from(workspaceMembers)
+        .where(
+          and(
+            eq(workspaceMembers.workspaceId, workspaceId),
+            eq(workspaceMembers.userId, userId)
+          )
+        )
+        .limit(1)
+    );
+    if (isAdminError) {
+      throw new InternalServerErrorException(
+        "Failed to check if user is admin"
+      );
+    }
+    if (!isAdmin?.[0]?.isAdmin) {
+      throw new ForbiddenException(
+        "You are not authorized to update member role"
+      );
+    }
+
+    const [, error] = await attempt(
+      db
+        .update(workspaceMembers)
+        .set({ role })
+        .where(
+          and(
+            eq(workspaceMembers.workspaceId, workspaceId),
+            eq(workspaceMembers.id, memberId)
+          )
+        )
+    );
+    if (error) {
+      throw new InternalServerErrorException("Failed to update member role");
+    }
+    return ok({ success: true });
   }
 }

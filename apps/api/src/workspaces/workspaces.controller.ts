@@ -13,6 +13,7 @@ import { ApiCookieAuth } from "@nestjs/swagger";
 import { Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { AddMemberToWorkspaceDto } from "./dto/add-member-to-workspace.dto";
 import { CreateWorkspaceDto } from "./dto/create-workspace.dto";
+import { UpdateMemberRoleDto } from "./dto/update-memeber-role.dto";
 import { WorkspacesService } from "./workspaces.service";
 
 @ApiCookieAuth()
@@ -84,6 +85,21 @@ export class WorkspacesController {
     return await this.workspacesService.updateWorkspaceAccessedAt(
       slug,
       session.user.id
+    );
+  }
+
+  @Put(":workspaceId/members/:memberId/role")
+  async updateMemberRole(
+    @Param("workspaceId", ParseUUIDPipe) workspaceId: string,
+    @Param("memberId", ParseIntPipe) memberId: number,
+    @Body() body: UpdateMemberRoleDto,
+    @Session() session: UserSession
+  ) {
+    return await this.workspacesService.updateMemberRole(
+      session.user.id,
+      workspaceId,
+      memberId,
+      body.role
     );
   }
 }
