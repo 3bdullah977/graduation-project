@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronRight, type LucideIcon } from "lucide-react";
-
+import Link from "next/link";
 import {
   Collapsible,
   CollapsibleContent,
@@ -91,7 +91,7 @@ function SimpleNavItem({ item }: { item: NavItem }) {
         isActive={item.isActive}
         tooltip={item.title}
       >
-        <a className="flex items-center gap-2" href={item.url}>
+        <Link className="flex items-center gap-2" href={item.url}>
           {item.icon ? (
             <item.icon
               className={cn(
@@ -102,7 +102,7 @@ function SimpleNavItem({ item }: { item: NavItem }) {
           ) : null}
           <span className="flex-1">{item.title}</span>
           {item.badge ? <Badge badge={item.badge} /> : null}
-        </a>
+        </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
@@ -119,10 +119,10 @@ function NestedNavItem({ nestedItem }: { nestedItem: NestedNavItem }) {
         )}
         isActive={nestedItem.isActive}
       >
-        <a className="flex items-center gap-2" href={nestedItem.url}>
+        <Link className="flex items-center gap-2" href={nestedItem.url}>
           <span className="flex-1">{nestedItem.title}</span>
           {nestedItem.badge ? <SubBadge badge={nestedItem.badge} /> : null}
-        </a>
+        </Link>
       </SidebarMenuSubButton>
     </SidebarMenuSubItem>
   );
@@ -190,7 +190,7 @@ function CollapsibleSubItem({ subItem }: { subItem: NavSubItem }) {
         )}
         isActive={subItem.isActive}
       >
-        <a className="flex items-center gap-2" href={subItem.url}>
+        <Link className="flex items-center gap-2" href={subItem.url}>
           {subItem.icon ? (
             <subItem.icon
               className={cn(
@@ -201,7 +201,7 @@ function CollapsibleSubItem({ subItem }: { subItem: NavSubItem }) {
           ) : null}
           <span className="flex-1">{subItem.title}</span>
           {subItem.badge ? <SubBadge badge={subItem.badge} /> : null}
-        </a>
+        </Link>
       </SidebarMenuSubButton>
     </SidebarMenuSubItem>
   );

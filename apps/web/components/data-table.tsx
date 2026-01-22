@@ -57,10 +57,10 @@ export function DataTable<TData, TValue>({
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
+                className={onRowClick ? "cursor-pointer" : ""}
                 data-state={row.getIsSelected() && "selected"}
                 key={row.id}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                className={onRowClick ? "cursor-pointer" : ""}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>

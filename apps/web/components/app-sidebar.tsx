@@ -3,12 +3,12 @@
 import {
   Briefcase,
   Clock,
-  GalleryVerticalEnd,
   Inbox,
   Plus,
   Square,
   TrendingUp,
 } from "lucide-react";
+import { useParams } from "next/navigation";
 import { NavMain } from "@/components/nav-main";
 import {
   Sidebar,
@@ -20,80 +20,79 @@ import {
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import { NavUser } from "./nav-user";
 
-const data = {
-  workspaces: [
-    {
-      name: "testFirst1",
-      logo: GalleryVerticalEnd,
-      plan: "Free",
-    },
-  ],
-  navMain: [
-    {
-      title: "Inbox",
-      url: "#",
-      icon: Inbox,
-      badge: 3,
-    },
-    {
-      title: "My issues",
-      url: "#",
-      icon: TrendingUp,
-    },
-    {
-      title: "Create workspace",
-      url: "/workspaces/new",
-      icon: Plus,
-    },
-    {
-      title: "Workspace",
-      url: "#",
-      icon: undefined,
-      isActive: true,
-      isCollapsible: true,
-      items: [
-        {
-          title: "Projects",
-          url: "/workspaces/projects",
-          icon: Briefcase,
-        },
+function getData(slug: string) {
+  return {
+    navMain: [
+      {
+        title: "Inbox",
+        url: "#",
+        icon: Inbox,
+        badge: 3,
+      },
+      {
+        title: "My issues",
+        url: "#",
+        icon: TrendingUp,
+      },
+      {
+        title: "Create workspace",
+        url: "/workspaces/new",
+        icon: Plus,
+      },
+      {
+        title: "Workspace",
+        url: "#",
+        icon: undefined,
+        isActive: true,
+        isCollapsible: true,
+        items: [
+          {
+            title: "Projects",
+            url: `/${encodeURIComponent(slug)}/projects`,
+            icon: Briefcase,
+          },
 
-        {
-          title: "Issues",
-          url: "#",
-          icon: Square,
-          badge: 12,
-        },
-        {
-          title: "Cycles",
-          isActive: true,
-          isCollapsible: false,
-          url: "#",
-          icon: Clock,
-          items: [
-            {
-              title: "Current",
-              url: "#",
-            },
-            {
-              title: "Upcoming",
-              url: "#",
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
+          {
+            title: "Issues",
+            url: `/${encodeURIComponent(slug)}/issues`,
+            icon: Square,
+            badge: 12,
+          },
+          {
+            title: "Cycles",
+            isActive: true,
+            isCollapsible: false,
+            url: `/${encodeURIComponent(slug)}/cycles`,
+            icon: Clock,
+            items: [
+              {
+                title: "Current",
+                url: `/${encodeURIComponent(slug)}/cycles/current`,
+              },
+              {
+                title: "Upcoming",
+                url: `/${encodeURIComponent(slug)}/cycles/upcoming`,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const params = useParams();
+  const slug = decodeURIComponent(params.workspace as string);
+  const { navMain } = getData(slug);
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <WorkspaceSwitcher />
       </SidebarHeader>
       <SidebarContent className="gap-2">
-        <NavMain items={data.navMain} showLabel={false} />
+        <NavMain items={navMain} showLabel={false} />
       </SidebarContent>
       <SidebarFooter className="border-sidebar-border border-t">
         <NavUser
