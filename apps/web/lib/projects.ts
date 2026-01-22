@@ -51,3 +51,47 @@ export const createProject = async (
   );
   return res.data;
 };
+
+export const getProject = async (workspaceId: string, projectId: string) => {
+  const res = await authFetch<{ project: Project }>(
+    `${BACKEND_URL}/workspaces/${workspaceId}/projects/${projectId}`,
+    {
+      method: "GET",
+    }
+  );
+  return res.data;
+};
+
+export type UpdateProjectData = {
+  name?: string;
+  description?: string;
+  status?: ProjectStatus;
+  priority?: number;
+  startDate?: Date;
+  endDate?: Date;
+};
+
+export const updateProject = async (
+  workspaceId: string,
+  projectId: string,
+  data: UpdateProjectData
+) => {
+  const res = await authFetch<{ projectId: string }>(
+    `${BACKEND_URL}/workspaces/${workspaceId}/projects/${projectId}`,
+    {
+      method: "PUT",
+      data,
+    }
+  );
+  return res.data;
+};
+
+export const deleteProject = async (workspaceId: string, projectId: string) => {
+  const res = await authFetch<{ projectId: string }>(
+    `${BACKEND_URL}/workspaces/${workspaceId}/projects/${projectId}`,
+    {
+      method: "DELETE",
+    }
+  );
+  return res.data;
+};
