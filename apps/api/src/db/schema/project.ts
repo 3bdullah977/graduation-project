@@ -7,6 +7,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { users } from "./auth-schema";
 import { workspaces } from "./workspace";
 
 export const projects = pgTable(
@@ -40,5 +41,61 @@ export const projectRelations = relations(projects, ({ one }) => ({
   workspace: one(workspaces, {
     fields: [projects.workspaceId],
     references: [workspaces.id],
+  }),
+}));
+
+export const tasks = pgTable(
+  "tasks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    description: text("description"),
+    projectId: uuid("project_id")
+      .references(() => projects.id, { onDelete: "cascade" })
+      .notNull(),
+    assigneeId: text("assignee_id").references(() => users.id),
+    status: text("status", {
+      enum: ["todo", "in_progress", "done"],
+    })
+      .notNull()
+      .default("todo"),
+    dueDate: timestamp("due_date"),
+    priority: integer("priority").notNull().default(0), // 0: low, 1: medium, 2: high
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    check("priority_check", sql`${t.priority} >= 0 AND ${t.priority} <= 2`),
+  ]
+);
+
+export const taskRelations = relations(tasks, ({ one }) => ({
+  project: one(projects, {
+    fields: [tasks.projectId],
+    references: [projects.id],
+  }),
+  assignee: one(users, {
+    fields: [tasks.assigneeId],
+    references: [users.id],
+  }),
+}));
+
+export const taskComments = pgTable("task_comments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  taskId: uuid("task_id")
+    .references(() => tasks.id, { onDelete: "cascade" })
+    .notNull(),
+  userId: text("user_id").references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const taskCommentRelations = relations(taskComments, ({ one }) => ({
+  task: one(tasks, {
+    fields: [taskComments.taskId],
+    references: [tasks.id],
+  }),
+  user: one(users, {
+    fields: [taskComments.userId],
+    references: [users.id],
   }),
 }));

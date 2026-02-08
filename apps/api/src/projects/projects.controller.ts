@@ -9,7 +9,9 @@ import {
   Put,
 } from "@nestjs/common";
 import { CreateProjectDto } from "./dto/create-project.dto";
+import { CreateTaskDto } from "./dto/create-task.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
+import { UpdateTaskDto } from "./dto/update-task.dto";
 import { ProjectsService } from "./projects.service";
 
 @Controller("/workspaces/:workspaceId/projects")
@@ -51,5 +53,42 @@ export class ProjectsController {
     @Body() body: UpdateProjectDto
   ) {
     return await this.projectsService.updateProject(projectId, body);
+  }
+
+  @Post(":projectId/tasks")
+  async createTask(
+    @Param("projectId", ParseUUIDPipe) projectId: string,
+    @Body() body: CreateTaskDto
+  ) {
+    return await this.projectsService.createTask(projectId, body);
+  }
+
+  @Get(":projectId/tasks")
+  async listTasks(
+    @Param("projectId", ParseUUIDPipe) projectId: string,
+  ) {
+    return await this.projectsService.listTasks(projectId);
+  }
+
+  @Get(":taskId")
+  async getTask(
+    @Param("taskId", ParseUUIDPipe) taskId: string,
+  ) {
+    return await this.projectsService.getTask(taskId);
+  }
+
+  @Put(":taskId")
+  async updateTask(
+    @Param("taskId", ParseUUIDPipe) taskId: string,
+    @Body() body: UpdateTaskDto
+  ) {
+    return await this.projectsService.updateTask(taskId, body);
+  }
+
+  @Delete(":taskId")
+  async deleteTask(
+    @Param("taskId", ParseUUIDPipe) taskId: string,
+  ) {
+    return await this.projectsService.deleteTask(taskId);
   }
 }
