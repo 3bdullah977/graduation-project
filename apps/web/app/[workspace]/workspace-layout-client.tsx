@@ -20,6 +20,9 @@ export function WorkspaceLayoutClient({
           <header className="flex h-12 w-full shrink-0 items-center gap-4 border-b px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
             <SidebarTrigger className="-ml-1" />
             <Separator className="h-4 bg-border" orientation="vertical" />
+            <div>
+              <h1 className="text-lg font-bold">Projects</h1>
+            </div>
           </header>
         )}
         {children}

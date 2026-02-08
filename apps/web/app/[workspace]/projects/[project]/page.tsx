@@ -22,6 +22,8 @@ import { Loading } from "@/components/loading";
 import StatusPriority from "../_components/status-priority";
 import DateSelect from "../_components/date-select";
 import * as React from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { type UpdateProjectData ,updateProject } from "@/lib/projects";
 
 export default function Project() {
   const params = useParams();
@@ -35,9 +37,10 @@ export default function Project() {
   const [selectedStatus, setSelectedStatus] = useState();
   const [selectedPriority, setSelectedPriority] = useState();
 
+  const queryClient = useQueryClient();
 
   const { data: projectData, isLoading } = useQuery({
-      queryKey: ["projects", projectId],
+      queryKey: ["project", projectId],
       queryFn: async () => {
         if (!projectId) {
           return [];
@@ -63,6 +66,46 @@ export default function Project() {
       setSelectedPriority(projectData.priority);
     }
   }, [projectData]);
+
+  const updateMutation = useMutation({
+      mutationFn: async (data: UpdateProjectData) => {
+        const [result, error] = await attempt(updateProject(currentWorkspace.id, projectId, data));
+        if (error || !result) {
+          throw new Error("Failed to update project");
+        }
+        return result;
+      },
+      onSuccess: () => {
+        toast.success("Project updated successfully");
+        queryClient.invalidateQueries({ queryKey: ["project", projectId] });
+      },
+      onError: () => {
+        toast.error("Error while updating project");
+      },
+    });
+
+  useEffect(() => {
+    if (!projectName || selectedStatus === undefined || selectedPriority === undefined) {
+      return;
+    }
+
+    if (updateMutation.isPending) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      updateMutation.mutate({
+        name: projectName,
+        description: description || undefined,
+        status: selectedStatus,
+        priority: selectedPriority,
+        startDate: startDate,
+        endDate: targetDate,
+      });
+    }, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, [projectName, description, selectedStatus, selectedPriority, startDate, targetDate, updateMutation, updateMutation.isPending]);
 
   if (isLoading) {
     return <Loading />;
