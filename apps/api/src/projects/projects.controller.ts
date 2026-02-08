@@ -70,14 +70,14 @@ export class ProjectsController {
     return await this.projectsService.listTasks(projectId);
   }
 
-  @Get(":taskId")
+  @Get("/:projectId/tasks/:taskId")
   async getTask(
     @Param("taskId", ParseUUIDPipe) taskId: string,
   ) {
     return await this.projectsService.getTask(taskId);
   }
 
-  @Put(":taskId")
+  @Put("/:projectId/tasks/:taskId")
   async updateTask(
     @Param("taskId", ParseUUIDPipe) taskId: string,
     @Body() body: UpdateTaskDto
@@ -85,7 +85,7 @@ export class ProjectsController {
     return await this.projectsService.updateTask(taskId, body);
   }
 
-  @Delete(":taskId")
+  @Delete("/:projectId/tasks/:taskId")
   async deleteTask(
     @Param("taskId", ParseUUIDPipe) taskId: string,
   ) {
