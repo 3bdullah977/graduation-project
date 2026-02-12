@@ -35,7 +35,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { attempt } from "@/lib/error-handling";
-import { type CreateProjectData, createProject } from "@/lib/projects";
+import { type CreateProjectTaskData, createProject, createProjectTask } from "@/lib/projects";
 import type { Workspace } from "@/lib/workspace";
 import * as React from "react";
 import DateSelect from "./date-select";
@@ -45,6 +45,7 @@ type CreateProjectDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   workspace: Workspace;
+  name: string;
 };
 
 const schema = z.object({
@@ -58,6 +59,7 @@ const schema = z.object({
     "cancelled",
   ]),
   priority: z.number().min(0).max(4),
+  projectId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -66,6 +68,7 @@ export function CreateProjectDialog({
   open,
   onOpenChange,
   workspace,
+  name
 }: CreateProjectDialogProps) {
   const [startDate, setStartDate] = React.useState<Date>();
   const [targetDate, setTargetDate] = React.useState<Date>();
@@ -79,26 +82,39 @@ export function CreateProjectDialog({
       description: "",
       status: "backlog",
       priority: 0,
+      projectId: "",
     },
     mode: "onChange",
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: CreateProjectData) => {
-      const [result, error] = await attempt(createProject(workspace.id, data));
-      if (error || !result) {
-        throw new Error("Failed to create project");
+    mutationFn: async (data: CreateProjectTaskData) => {
+      console.log(data);
+      if (name === "Issue" && !data.projectId) {
+        throw new Error("Project ID is required for issues");
       }
+
+      const [result, error] = await attempt(
+        name === "Issue"
+          ? createProjectTask(workspace.id, data.projectId, data)
+          : createProject(workspace.id, data)
+      );
+
+      if (error || !result) {
+        throw new Error(`Failed to create ${name}`);
+      }
+
       return result;
     },
     onSuccess: () => {
-      toast.success("Project created successfully");
+      toast.success(`${name} created successfully`);
       queryClient.invalidateQueries({ queryKey: ["projects", workspace.id] });
       form.reset();
       onOpenChange(false);
     },
-    onError: () => {
-      toast.error("Error while creating project");
+    onError: (err) => {
+      console.log(err);
+      toast.error(`Error while creating ${name}`);
     },
   });
 
@@ -108,6 +124,7 @@ export function CreateProjectDialog({
       description: data.description?.trim() || undefined,
       status: data.status,
       priority: data.priority,
+      ...(name === "Issue" && { projectId: data.projectId }),
     });
   }
 
@@ -118,15 +135,16 @@ export function CreateProjectDialog({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/${workspace.slug}`}>
+                {name === "Project" && (
+                 <BreadcrumbLink href={`/${workspace.slug}`}>
                   {workspace.name}
-                </BreadcrumbLink>
+                </BreadcrumbLink> )}
               </BreadcrumbItem>
               <BreadcrumbSeparator>
                 <ChevronRight className="size-4" />
               </BreadcrumbSeparator>
               <BreadcrumbItem>
-                <BreadcrumbPage>New project</BreadcrumbPage>
+                <BreadcrumbPage>New {name}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -146,7 +164,7 @@ export function CreateProjectDialog({
                     <FormControl>
                       <Input
                         className="h-12 border-none p-0 font-bold text-xl! shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
-                        placeholder="Project name"
+                        placeholder={`${name} name`}
                         {...field}
                       />
                     </FormControl>
@@ -157,25 +175,30 @@ export function CreateProjectDialog({
 
               <div className="flex gap-2">
                 {/* Status and Priority Selectors */}
-                <StatusPriority form={form} />
-                <Button
-                  className="h-8 gap-1.5"
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
+                <StatusPriority form={form} name={name}/>
+                {
+                  name === "Project" && (
+                    <div className="flex gap-2">
+                    <Button
+                    className="h-8 gap-1.5"
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                    >
                   <User className="size-3.5" />
                   Lead
                 </Button>
                 <Button
-                  className="h-8 gap-1.5"
-                  size="sm"
-                  type="button"
-                  variant="outline"
+                className="h-8 gap-1.5"
+                size="sm"
+                type="button"
+                variant="outline"
                 >
                   <Users className="size-3.5" />
                   Members
                 </Button>
+                </div>
+                )}
                 {/* Date Select */}
                 <DateSelect startDate={startDate} setStartDate={setStartDate} targetDate={targetDate} setTargetDate={setTargetDate} />
               </div>
@@ -188,7 +211,7 @@ export function CreateProjectDialog({
                       <FormControl>
                         <Textarea
                           className="min-h-[200px] resize-none border-none p-0 text-base! shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
-                          placeholder="Write a description, a project brief, or collect ideas..."
+                          placeholder={`Write a description, a ${name} brief, or collect ideas...`}
                           {...field}
                         />
                       </FormControl>
@@ -211,7 +234,7 @@ export function CreateProjectDialog({
                 disabled={createMutation.isPending || !form.formState.isValid}
                 type="submit"
               >
-                {createMutation.isPending ? "Creating..." : "Create project"}
+                {createMutation.isPending ? "Creating..." : `Create ${name}`}
               </Button>
             </DialogFooter>
           </form>

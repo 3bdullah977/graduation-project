@@ -95,3 +95,28 @@ export const deleteProject = async (workspaceId: string, projectId: string) => {
   );
   return res.data;
 };
+
+export type CreateProjectTaskData = {
+  name: string;
+  status: ProjectStatus;
+  priority: number;
+  projectId: string;
+  description?: string;
+  assigneeId?: string;
+  dueDate?: Date;
+};
+
+export const createProjectTask = async (
+  workspaceId: string,
+  projectId: string,
+  data: CreateProjectTaskData
+) => {
+  const res = await authFetch<{ projectId: string }>(
+    `${BACKEND_URL}/workspaces/${workspaceId}/projects/${projectId}/tasks`,
+    {
+      method: "POST",
+      data,
+    }
+  );
+  return res.data;
+};

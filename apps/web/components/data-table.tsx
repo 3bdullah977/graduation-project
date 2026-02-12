@@ -34,7 +34,7 @@ export function DataTable<TData, TValue>({
 
   const handleRowClick = (row: Row<TData>) => {
     onRowClick ? () => onRowClick(row) : undefined;
-    router.push(`${pathname}/${(row.original as any).id}`);
+    router.push(`${pathname}/${(row.original as any).id}/overview`);
   } 
 
   const table = useReactTable({

@@ -13,11 +13,14 @@ import { attempt } from "@/lib/error-handling";
 import { listProjects } from "@/lib/projects";
 import { findWorkspaceBySlug } from "@/lib/workspace";
 import { columns } from "./columns";
+import { projectsDateAtom } from "@/lib/atoms/projects-date";
+import { useAtom } from "jotai";
 
 export default function ProjectsPage() {
   const params = useParams();
   const slug = decodeURIComponent(params.workspace as string);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [lol, setProjectsDate] = useAtom(projectsDateAtom);
 
   const { data: workspaceData, isLoading: isWorkspaceLoading } = useQuery({
     queryKey: ["workspace", slug],
@@ -55,7 +58,8 @@ export default function ProjectsPage() {
     return <Loading />;
   }
   if (true) {
-    console.log(projectsData);
+    setProjectsDate(projectsData ?? []);
+    // console.log(lol);
   }
 
   if (!workspaceData?.id) {
@@ -81,6 +85,7 @@ export default function ProjectsPage() {
         onOpenChange={setDialogOpen}
         open={dialogOpen}
         workspace={workspaceData}
+        name="Project"
       />
     </div>
   );

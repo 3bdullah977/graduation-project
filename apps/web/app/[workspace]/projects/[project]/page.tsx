@@ -71,6 +71,7 @@ export default function Project() {
       mutationFn: async (data: UpdateProjectData) => {
         const [result, error] = await attempt(updateProject(currentWorkspace.id, projectId, data));
         if (error || !result) {
+          console.log(result);
           throw new Error("Failed to update project");
         }
         return result;
@@ -105,7 +106,7 @@ export default function Project() {
     }, 2000);
 
     return () => clearTimeout(timeoutId);
-  }, [projectName, description, selectedStatus, selectedPriority, startDate, targetDate, updateMutation, updateMutation.isPending]);
+  }, [projectName, description, selectedStatus, selectedPriority, startDate, targetDate]);
 
   if (isLoading) {
     return <Loading />;

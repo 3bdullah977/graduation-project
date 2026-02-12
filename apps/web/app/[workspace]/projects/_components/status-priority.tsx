@@ -1,3 +1,6 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
 import {
   ShieldCheck as Complete,
   Loader as Backlog,
@@ -9,6 +12,7 @@ import {
   SignalMedium as MediumPriority,
   SignalHigh as HighPriority,
   OctagonAlert as UrgentPriority,
+  Box
 } from "lucide-react";
 import {
   FormControl,
@@ -23,6 +27,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { projectsDateAtom } from "@/lib/atoms/projects-date";
+import { useAtom } from "jotai";
 
 const priorityOptions = [
   { value: 0, label: "No priority", icon: <NoPriority /> },
@@ -40,8 +46,13 @@ const statusOptions = [
   { value: "cancelled", label: "Cancelled", icon: <Cancelled color='#8a8f98'/> },
 ] as const;
 
-export default function StatusPriority({form, selectedStatus, setSelectedStatus, selectedPriority, setSelectedPriority}:
-   {form?: any, selectedStatus?: string, setSelectedStatus?: (status: string) => void, selectedPriority?: number, setSelectedPriority?: (priority: number) => void}) {
+export default function StatusPriority({form, selectedStatus, setSelectedStatus, selectedPriority, setSelectedPriority, name}:
+   {form?: any, selectedStatus?: string, setSelectedStatus?: (status: string) => void, selectedPriority?: number, setSelectedPriority?: (priority: number) => void, name: string}) {
+    const pathname = usePathname();
+    const [projectsDate, setProjectsDate] = useAtom(projectsDateAtom);
+    
+    const projectIdFromUrl = pathname?.match(/\/projects\/([a-f0-9\-]+)\/(overview|issues)/)?.[1] || "";
+
   const renderStatusSelect = () => (
     <Select value={selectedStatus} onValueChange={setSelectedStatus}>
       <SelectTrigger className="w-auto h-8" size="sm">
@@ -168,6 +179,52 @@ export default function StatusPriority({form, selectedStatus, setSelectedStatus,
                         </FormItem>
                       )}
                     />
+                    {name === "Issue" && (
+                      <FormField
+                      control={form?.control}
+                      name="projectId"
+                      render={({ field }) => {
+                        const displayValue = field.value || projectIdFromUrl || "";
+                        console.log("Project ID from form field:", field.value);
+                        return (
+                          <FormItem>
+                            <FormControl>
+                              <Select 
+                                value={displayValue} 
+                                onValueChange={(value) => field.onChange(Number(value))}
+                              >
+                                <SelectTrigger className="w-auto h-8" size="sm">
+                                  <SelectValue placeholder={
+                                    <div className="flex items-center gap-2">
+                                      <Box className="size-4" />
+                                      <span>Project</span>
+                                    </div>
+                                  } />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {projectsDate && projectsDate.length > 0 ? (
+                                    projectsDate.map((project) => (
+                                      <SelectItem key={project.id} value={project.id}>
+                                        <div className="flex items-center gap-2">
+                                          <Box className="size-4" />
+                                          <span>{project.name}</span>
+                                        </div>
+                                      </SelectItem>
+                                    ))
+                                  ) : (
+                                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                                      No projects available
+                                    </div>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
+                    />
+                  )}
           </>
         ) : (
           <>
