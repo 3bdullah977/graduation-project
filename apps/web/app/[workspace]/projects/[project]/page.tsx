@@ -59,7 +59,7 @@ export default function Project() {
 
   useEffect(() => {
     if (projectData) {
-      console.log(projectData);
+      // console.log(projectData);
       setProjectName(projectData.name);
       setDescription(projectData.description || "");
       setSelectedStatus(projectData.status);
@@ -71,7 +71,7 @@ export default function Project() {
       mutationFn: async (data: UpdateProjectData) => {
         const [result, error] = await attempt(updateProject(currentWorkspace.id, projectId, data));
         if (error || !result) {
-          console.log(result);
+          // console.log(result);
           throw new Error("Failed to update project");
         }
         return result;

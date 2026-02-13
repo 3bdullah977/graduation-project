@@ -185,13 +185,12 @@ export default function StatusPriority({form, selectedStatus, setSelectedStatus,
                       name="projectId"
                       render={({ field }) => {
                         const displayValue = field.value || projectIdFromUrl || "";
-                        console.log("Project ID from form field:", field.value);
                         return (
                           <FormItem>
                             <FormControl>
                               <Select 
                                 value={displayValue} 
-                                onValueChange={(value) => field.onChange(Number(value))}
+                                onValueChange={field.onChange}
                               >
                                 <SelectTrigger className="w-auto h-8" size="sm">
                                   <SelectValue placeholder={
