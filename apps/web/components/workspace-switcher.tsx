@@ -24,8 +24,12 @@ import {
 import { currentWorkspaceAtom } from "@/lib/atoms/current-workspace";
 import { attempt } from "@/lib/error-handling";
 import { findWorkspaceBySlug, listWorkspaces } from "@/lib/workspace";
+import { CreateProjectDialog } from "../app/[workspace]/projects/_components/create-project-dialog";
+import { useState } from "react";
 
 export function WorkspaceSwitcher() {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   const router = useRouter();
   const params = useParams();
   const slug = decodeURIComponent(params.workspace as string);
@@ -63,6 +67,7 @@ export function WorkspaceSwitcher() {
   });
 
   return (
+    <>
     <SidebarMenu>
       <SidebarMenuItem className="flex items-center gap-2">
         <DropdownMenu>
@@ -70,7 +75,7 @@ export function WorkspaceSwitcher() {
             <SidebarMenuButton
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               size="lg"
-            >
+              >
               <div className="flex aspect-square size-6 items-center justify-center rounded-sm bg-primary text-white">
                 <span className="font-semibold text-xs">
                   {activeWorkspace?.name.slice(0, 2).toUpperCase()}
@@ -89,18 +94,18 @@ export function WorkspaceSwitcher() {
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
-          >
+            >
             <DropdownMenuLabel className="text-muted-foreground text-xs">
               Workspaces
             </DropdownMenuLabel>
             {workspaces?.workspaces?.slice(0, 2).map((workspace) => (
               <DropdownMenuItem
-                className="gap-2 p-2"
-                key={workspace.name}
-                onClick={() => {
-                  setActiveWorkspace(workspace);
-                  router.push(`/${encodeURIComponent(workspace.slug)}`);
-                }}
+              className="gap-2 p-2"
+              key={workspace.name}
+              onClick={() => {
+                setActiveWorkspace(workspace);
+                router.push(`/${encodeURIComponent(workspace.slug)}`);
+              }}
               >
                 <div className="flex size-6 items-center justify-center rounded-md border text-muted-foreground text-xs">
                   {workspace.name.slice(0, 2).toUpperCase()}
@@ -120,7 +125,7 @@ export function WorkspaceSwitcher() {
               <Link
                 className="flex items-center gap-2"
                 href={`/${encodeURIComponent(activeWorkspace?.slug ?? "")}/settings/members`}
-              >
+                >
                 <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
                   <Users className="size-4" />
                 </div>
@@ -133,7 +138,7 @@ export function WorkspaceSwitcher() {
               <Link
                 className="flex items-center gap-2"
                 href={`/${encodeURIComponent(activeWorkspace?.slug ?? "")}/settings/preferences`}
-              >
+                >
                 <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
                   <Settings className="size-4" />
                 </div>
@@ -154,11 +159,18 @@ export function WorkspaceSwitcher() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button className="h-8 w-8" size="icon" variant="outline">
+        <Button className="h-8 w-8" size="icon" variant="outline" onClick={()=> setDialogOpen(true)}>
           <ExternalLink className="size-4" />
           <span className="sr-only">Create new issue</span>
         </Button>
       </SidebarMenuItem>
     </SidebarMenu>
+    <CreateProjectDialog
+      onOpenChange={setDialogOpen}
+      open={dialogOpen}
+      workspace={activeWorkspace}
+      name="Issue"
+    />
+  </>
   );
 }
