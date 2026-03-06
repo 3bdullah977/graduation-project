@@ -33,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { projectsDateAtom } from "@/lib/atoms/projects-date";
+import { projectsDataAtom } from "@/lib/atoms/projects-data";
 
 const defaultPriorityOption = {
   value: 0,
@@ -93,7 +93,7 @@ export default function StatusPriority({
   showProjectSelector?: boolean;
 }) {
   const pathname = usePathname();
-  const [projectsData] = useAtom(projectsDateAtom);
+  const [projectsData] = useAtom(projectsDataAtom);
 
   const projectIdFromUrl = pathname?.match(PROJECT_ID_REGEX)?.[1] ?? "";
 

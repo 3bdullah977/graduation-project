@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { projectsDateAtom } from "@/lib/atoms/projects-date";
+import { projectsDataAtom } from "@/lib/atoms/projects-data";
 import { attempt } from "@/lib/error-handling";
 import {
   type CreateProjectTaskData,
@@ -74,7 +74,7 @@ export function CreateTaskDialog({
   const [targetDate, setTargetDate] = useState<Date>();
 
   const queryClient = useQueryClient();
-  const setProjectsDate = useSetAtom(projectsDateAtom);
+  const setProjectsData = useSetAtom(projectsDataAtom);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -102,9 +102,9 @@ export function CreateTaskDialog({
 
   useEffect(() => {
     if (projects) {
-      setProjectsDate(projects);
+      setProjectsData(projects);
     }
-  }, [projects, setProjectsDate]);
+  }, [projects, setProjectsData]);
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateProjectTaskData) => {
