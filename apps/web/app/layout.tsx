@@ -6,6 +6,7 @@ import { JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/auth-provider";
 import ReactQueryProvider from "@/components/react-query-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -32,14 +33,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html className={jetbrainsMono.variable} lang="en">
+    <html className={jetbrainsMono.variable} lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Provider>
-          <ReactQueryProvider>
-            <Toaster />
-            <AuthProvider>{children}</AuthProvider>
-          </ReactQueryProvider>
-        </Provider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          disableTransitionOnChange
+          enableSystem
+        >
+          <Provider>
+            <ReactQueryProvider>
+              <Toaster />
+              <AuthProvider>{children}</AuthProvider>
+            </ReactQueryProvider>
+          </Provider>
+        </ThemeProvider>
       </body>
     </html>
   );
