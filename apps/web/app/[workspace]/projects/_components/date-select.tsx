@@ -41,7 +41,9 @@ export default function DateSelect({
         </PopoverTrigger>
         <PopoverContent align="start" className="w-auto p-0">
           <Calendar
-            disabled={(date) => date < new Date("1900-01-01")}
+            disabled={(date) =>
+              date < new Date(Date.now() - 1000 * 60 * 60 * 24)
+            }
             mode="single"
             onSelect={setStartDate}
             required

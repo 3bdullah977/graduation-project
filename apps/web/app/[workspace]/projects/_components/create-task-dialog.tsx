@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSetAtom } from "jotai";
 import { ChevronRight } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -70,11 +71,14 @@ export function CreateTaskDialog({
   onOpenChange,
   workspace,
 }: CreateTaskDialogProps) {
+  const { project } = useParams();
   const [startDate, setStartDate] = useState<Date>();
   const [targetDate, setTargetDate] = useState<Date>();
 
   const queryClient = useQueryClient();
   const setProjectsData = useSetAtom(projectsDataAtom);
+
+  const projectId = project as string;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -83,7 +87,7 @@ export function CreateTaskDialog({
       description: "",
       status: "backlog",
       priority: 0,
-      projectId: "",
+      projectId: projectId || "",
     },
     mode: "onChange",
   });
