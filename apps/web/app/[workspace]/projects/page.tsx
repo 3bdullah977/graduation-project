@@ -114,7 +114,7 @@ function StatCard({
 }) {
   return (
     <button
-      className={`group flex flex-col gap-3 border p-4 text-left transition-colors hover:bg-accent ${active ? "border-primary bg-accent" : "border-border bg-card"}`}
+      className={`group flex flex-col gap-3 border p-4 text-left transition-colors hover:bg-accent ${active ? "border-primary bg-accent/40" : "border-border bg-card"}`}
       onClick={onClick}
       type="button"
     >
