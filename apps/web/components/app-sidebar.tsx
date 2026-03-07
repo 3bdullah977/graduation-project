@@ -18,6 +18,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
+import { authClient } from "@/lib/auth-client";
 import { NavUser } from "./nav-user";
 
 function getData(slug: string) {
@@ -85,6 +86,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const params = useParams();
   const slug = decodeURIComponent(params.workspace as string);
   const { navMain } = getData(slug);
+  const { data: session, isPending: isSessionPending } =
+    authClient.useSession();
+
+  if (isSessionPending) {
+    return null;
+  }
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -97,9 +104,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter className="border-sidebar-border border-t">
         <NavUser
           user={{
-            name: "John Doe",
-            email: "john.doe@example.com",
-            avatar: "",
+            name: session?.user?.name ?? "",
+            email: session?.user?.email ?? "",
+            avatar: session?.user?.image ?? "",
           }}
         />
       </SidebarFooter>
