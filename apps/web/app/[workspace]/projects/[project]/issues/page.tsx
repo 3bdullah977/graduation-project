@@ -17,7 +17,7 @@ export default function ProjectIssues() {
   const projectId = params.project as string;
 
   const { data: projectTaskData, isLoading } = useQuery({
-    queryKey: ["projectTask", projectId],
+    queryKey: ["tasks", projectId],
     queryFn: async () => {
       const [projectTaskResult, projectTaskError] = await attempt(
         getProjectTasks(currentWorkspace?.id ?? "", projectId)

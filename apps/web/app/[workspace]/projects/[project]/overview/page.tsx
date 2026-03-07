@@ -211,7 +211,7 @@ export default function ProjectOverview() {
         value={projectName}
       />
 
-      <div className="flex flex-col divide-y">
+      <div className="flex flex-col border-b pb-4">
         <PropertyRow
           icon={<Gauge className="size-4" />}
           label="Status & Priority"
