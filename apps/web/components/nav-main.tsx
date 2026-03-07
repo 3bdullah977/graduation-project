@@ -74,9 +74,6 @@ function SubBadge({ badge }: { badge: string | number }) {
 
 function SimpleNavItem({ item }: { item: NavItem }) {
   const iconColor = iconColors[item.title] ?? "text-muted-foreground";
-  const activeIconColor = item.isActive
-    ? iconColor
-    : iconColor.replace("500", "400");
 
   return (
     <SidebarMenuItem key={item.title}>
@@ -96,7 +93,8 @@ function SimpleNavItem({ item }: { item: NavItem }) {
             <item.icon
               className={cn(
                 "size-4 transition-colors duration-200",
-                activeIconColor
+                iconColor,
+                !item.isActive && "opacity-75"
               )}
             />
           ) : null}
@@ -130,9 +128,6 @@ function NestedNavItem({ nestedItem }: { nestedItem: NestedNavItem }) {
 
 function CollapsibleSubItem({ subItem }: { subItem: NavSubItem }) {
   const subIconColor = iconColors[subItem.title] ?? "text-muted-foreground";
-  const activeSubIconColor = subItem.isActive
-    ? subIconColor
-    : subIconColor.replace("500", "400");
 
   if (subItem.items && subItem.items.length > 0) {
     return (
@@ -155,7 +150,8 @@ function CollapsibleSubItem({ subItem }: { subItem: NavSubItem }) {
                 <subItem.icon
                   className={cn(
                     "size-4 transition-colors duration-200",
-                    activeSubIconColor
+                    subIconColor,
+                    !subItem.isActive && "opacity-75"
                   )}
                 />
               ) : null}
@@ -195,7 +191,8 @@ function CollapsibleSubItem({ subItem }: { subItem: NavSubItem }) {
             <subItem.icon
               className={cn(
                 "size-4 transition-colors duration-200",
-                activeSubIconColor
+                subIconColor,
+                !subItem.isActive && "opacity-75"
               )}
             />
           ) : null}
@@ -209,9 +206,6 @@ function CollapsibleSubItem({ subItem }: { subItem: NavSubItem }) {
 
 function CollapsibleNavItem({ item }: { item: NavItem }) {
   const iconColor = iconColors[item.title] ?? "text-muted-foreground";
-  const activeIconColor = item.isActive
-    ? iconColor
-    : iconColor.replace("500", "400");
 
   return (
     <Collapsible
@@ -233,7 +227,8 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
               <item.icon
                 className={cn(
                   "size-4 transition-colors duration-200",
-                  activeIconColor
+                  iconColor,
+                  !item.isActive && "opacity-75"
                 )}
               />
             ) : null}
