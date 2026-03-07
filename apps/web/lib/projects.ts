@@ -145,3 +145,41 @@ export const getProjectTasks = async (
   );
   return res.data;
 };
+
+export const getProjectTask = async (
+  workspaceId: string,
+  projectId: string,
+  taskId: string
+) => {
+  const res = await authFetch<{ task: ProjectTask }>(
+    `${BACKEND_URL}/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`,
+    {
+      method: "GET",
+    }
+  );
+  return res.data;
+};
+
+export type UpdateProjectTaskData = {
+  name?: string;
+  description?: string | null;
+  status?: ProjectStatus;
+  priority?: number;
+  dueDate?: Date;
+};
+
+export const updateProjectTask = async (
+  workspaceId: string,
+  projectId: string,
+  taskId: string,
+  data: UpdateProjectTaskData
+) => {
+  const res = await authFetch<{ taskId: string }>(
+    `${BACKEND_URL}/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`,
+    {
+      method: "PUT",
+      data,
+    }
+  );
+  return res.data;
+};
