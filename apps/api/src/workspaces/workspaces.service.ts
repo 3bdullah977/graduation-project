@@ -68,9 +68,26 @@ export class WorkspacesService {
   async findWorkspaceBySlug(slug: string, userId: string) {
     const [workspace, error] = await attempt(
       db
-        .select()
+        .select({
+          id: workspaces.id,
+          name: workspaces.name,
+          slug: workspaces.slug,
+          ownerId: workspaces.ownerId,
+        })
         .from(workspaces)
-        .where(and(eq(workspaces.slug, slug), eq(workspaces.ownerId, userId)))
+        .leftJoin(
+          workspaceMembers,
+          eq(workspaces.id, workspaceMembers.workspaceId)
+        )
+        .where(
+          and(
+            eq(workspaces.slug, slug),
+            or(
+              eq(workspaceMembers.userId, userId),
+              eq(workspaces.ownerId, userId)
+            )
+          )
+        )
         .limit(1)
     );
     if (error) {
@@ -84,31 +101,60 @@ export class WorkspacesService {
     return ok({ workspace: workspace?.[0] });
   }
 
-  async getWorkspaces(offset: number, limit: number, ownerId: string) {
+  async getWorkspaces(offset: number, limit: number, userId: string) {
     const [total, totalError] = await attempt(
       db
         .select({ count: count(workspaces.id) })
         .from(workspaces)
-        .where(eq(workspaces.ownerId, ownerId))
+        .leftJoin(
+          workspaceMembers,
+          eq(workspaces.id, workspaceMembers.workspaceId)
+        )
+        .where(
+          and(
+            eq(workspaces.ownerId, userId),
+            or(
+              eq(workspaceMembers.userId, userId),
+              eq(workspaces.ownerId, userId)
+            )
+          )
+        )
     );
     if (totalError || total?.[0]?.count === undefined) {
       throw new InternalServerErrorException("Failed to get total workspaces");
     }
 
-    const [ownerWorkspaces, error] = await attempt(
+    const [workspacesResult, workspacesError] = await attempt(
       db
-        .select()
+        .select({
+          id: workspaces.id,
+          name: workspaces.name,
+          slug: workspaces.slug,
+          accessedAt: workspaces.accessedAt,
+          createdAt: workspaces.createdAt,
+          updatedAt: workspaces.updatedAt,
+        })
         .from(workspaces)
-        .where(eq(workspaces.ownerId, ownerId))
+        .leftJoin(
+          workspaceMembers,
+          eq(workspaces.id, workspaceMembers.workspaceId)
+        )
+        .where(
+          or(
+            eq(workspaceMembers.userId, userId),
+            eq(workspaces.ownerId, userId)
+          )
+        )
         .orderBy(desc(workspaces.accessedAt))
         .offset(offset)
         .limit(limit)
     );
-    if (error) {
+    if (workspacesError) {
       throw new InternalServerErrorException("Failed to get workspaces");
     }
+    console.log(workspacesResult);
     return ok({
-      workspaces: ownerWorkspaces ?? [],
+      workspaces: workspacesResult ?? [],
       total: total?.[0]?.count,
     });
   }
@@ -116,8 +162,33 @@ export class WorkspacesService {
   async addMemberToWorkspace(
     workspaceId: string,
     emails: string[],
-    role: "admin" | "developer" | "viewer"
+    role: "admin" | "developer" | "viewer",
+    userId: string
   ) {
+    const [isAdmin, isAdminError] = await attempt(
+      db
+        .select({ isAdmin: eq(workspaceMembers.role, "admin") })
+        .from(workspaceMembers)
+        .where(
+          and(
+            eq(workspaceMembers.workspaceId, workspaceId),
+            eq(workspaceMembers.userId, userId)
+          )
+        )
+        .limit(1)
+    );
+    console.log(isAdmin);
+    if (isAdminError) {
+      throw new InternalServerErrorException(
+        "Failed to check if user is admin"
+      );
+    }
+    if (!isAdmin?.[0]?.isAdmin) {
+      throw new ForbiddenException(
+        "You are not authorized to add members to this workspace"
+      );
+    }
+
     const [foundMembers, foundMembersError] = await attempt(
       db
         .select()
@@ -176,6 +247,7 @@ export class WorkspacesService {
       db
         .select({
           id: workspaceMembers.id,
+          userId: workspaceMembers.userId,
           workspaceId: workspaceMembers.workspaceId,
           name: users.name,
           email: users.email,

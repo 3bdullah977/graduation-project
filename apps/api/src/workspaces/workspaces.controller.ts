@@ -68,12 +68,14 @@ export class WorkspacesController {
   @Post(":workspaceId/members")
   async addMemberToWorkspace(
     @Param("workspaceId", ParseUUIDPipe) workspaceId: string,
-    @Body() body: AddMemberToWorkspaceDto
+    @Body() body: AddMemberToWorkspaceDto,
+    @Session() session: UserSession
   ) {
     return await this.workspacesService.addMemberToWorkspace(
       workspaceId,
       body.emails,
-      "developer"
+      "developer",
+      session.user.id
     );
   }
 

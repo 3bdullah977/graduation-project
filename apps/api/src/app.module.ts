@@ -5,6 +5,7 @@ import { AppService } from "./app.service";
 import { auth } from "./lib/auth";
 import { ProjectsModule } from "./projects/projects.module";
 import { WorkspacesModule } from "./workspaces/workspaces.module";
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { WorkspacesModule } from "./workspaces/workspaces.module";
       auth,
     }),
     ProjectsModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
