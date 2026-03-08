@@ -104,10 +104,12 @@ export type ProjectTask = {
   description?: string | null;
   projectId: string;
   assigneeId?: string;
-  status: ProjectStatus;
-  dueDate?: Date;
+  status?: ProjectStatus;
+  assigneeName?: string | null;
+  assigneeEmail?: string | null;
+  dueDate?: Date | null;
   priority: number;
-  createdAt: Date;
+  createdAt: Date | null;
 };
 
 export type CreateProjectTaskData = {

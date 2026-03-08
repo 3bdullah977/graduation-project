@@ -21,11 +21,14 @@ export class WorkspacesService {
           name: tasks.name,
           description: tasks.description,
           assigneeId: tasks.assigneeId,
+          assigneeName: users.name,
+          assigneeEmail: users.email,
           status: tasks.status,
           dueDate: tasks.dueDate,
           priority: tasks.priority,
         })
         .from(tasks)
+        .leftJoin(users, eq(tasks.assigneeId, users.id))
         .where(eq(tasks.workspaceId, workspaceId))
         .orderBy(desc(tasks.priority), desc(tasks.createdAt))
     );
@@ -359,10 +362,14 @@ export class WorkspacesService {
           description: tasks.description,
           projectId: tasks.projectId,
           assigneeId: tasks.assigneeId,
+          assigneeName: users.name,
+          assigneeEmail: users.email,
           status: tasks.status,
           dueDate: tasks.dueDate,
+          priority: tasks.priority,
         })
         .from(tasks)
+        .leftJoin(users, eq(tasks.assigneeId, users.id))
         .where(
           and(eq(tasks.workspaceId, workspaceId), eq(tasks.assigneeId, userId))
         )

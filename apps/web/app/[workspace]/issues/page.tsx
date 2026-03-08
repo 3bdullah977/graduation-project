@@ -2,8 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, LayoutDashboard, LayoutList } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Loading } from "@/components/loading";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,10 @@ type View = "list" | "board" | "calendar";
 
 export default function IssuesPage() {
   const [view, setView] = useState<View>("list");
+  const searchParams = useSearchParams();
   const params = useParams();
   const slug = decodeURIComponent(params.workspace as string);
+  const router = useRouter();
 
   const { data: workspaceData, isLoading: isWorkspaceLoading } = useQuery({
     queryKey: ["workspace", slug],
@@ -48,6 +50,17 @@ export default function IssuesPage() {
     },
   });
 
+  useEffect(() => {
+    const viewParam = searchParams.get("view");
+    if (
+      viewParam === "list" ||
+      viewParam === "board" ||
+      viewParam === "calendar"
+    ) {
+      setView(viewParam as View);
+    }
+  }, [searchParams]);
+
   if (isWorkspaceLoading || isAllTasksLoading) {
     return <Loading />;
   }
@@ -56,7 +69,10 @@ export default function IssuesPage() {
     <div>
       <div className="flex items-center gap-1 border-border border-b px-2 py-1.5">
         <Button
-          onClick={() => setView("list")}
+          onClick={() => {
+            setView("list");
+            router.replace(`/${slug}/issues?view=list`);
+          }}
           size="icon"
           title="List view"
           variant={view === "list" ? "secondary" : "ghost"}
@@ -64,7 +80,10 @@ export default function IssuesPage() {
           <LayoutList size={16} />
         </Button>
         <Button
-          onClick={() => setView("board")}
+          onClick={() => {
+            setView("board");
+            router.replace(`/${slug}/issues?view=board`);
+          }}
           size="icon"
           title="Board view"
           variant={view === "board" ? "secondary" : "ghost"}
@@ -72,7 +91,10 @@ export default function IssuesPage() {
           <LayoutDashboard size={16} />
         </Button>
         <Button
-          onClick={() => setView("calendar")}
+          onClick={() => {
+            setView("calendar");
+            router.replace(`/${slug}/issues?view=calendar`);
+          }}
           size="icon"
           title="Calendar view"
           variant={view === "calendar" ? "secondary" : "ghost"}

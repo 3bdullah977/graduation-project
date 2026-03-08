@@ -38,7 +38,7 @@ function TaskChip({ task }: { task: ProjectTask }) {
 
   const priority =
     priorityConfig.find((p) => p.value === task.priority) ?? priorityConfig[0];
-  const color = statusColorMap[task.status] ?? "#d7d8db";
+  const color = statusColorMap[task.status ?? "backlog"] ?? "#d7d8db";
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -204,10 +204,12 @@ export default function IssuesCalendar({
             {[...undatedTasks]
               .sort(
                 (a, b) =>
-                  statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status)
+                  statusOrder.indexOf(a.status ?? "backlog") -
+                  statusOrder.indexOf(b.status ?? "backlog")
               )
               .map((task) => {
-                const color = statusColorMap[task.status] ?? "#d7d8db";
+                const color =
+                  statusColorMap[task.status ?? "backlog"] ?? "#d7d8db";
                 const status = statusConfig.find(
                   (s) => s.value === task.status
                 );

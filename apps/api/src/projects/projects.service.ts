@@ -7,6 +7,7 @@ import {
 import { desc, eq } from "drizzle-orm";
 import { ok } from "@/common/response";
 import { db } from "@/db";
+import { users } from "@/db/schema/auth-schema";
 import { projects, tasks } from "@/db/schema/project";
 import { attempt } from "@/lib/error-handling";
 import { CreateProjectDto } from "./dto/create-project.dto";
@@ -147,9 +148,21 @@ export class ProjectsService {
   async listTasks(projectId: string) {
     const [taskList, taskListError] = await attempt(
       db
-        .select()
+        .select({
+          id: tasks.id,
+          name: tasks.name,
+          description: tasks.description,
+          assigneeId: tasks.assigneeId,
+          assigneeName: users.name,
+          assigneeEmail: users.email,
+          status: tasks.status,
+          dueDate: tasks.dueDate,
+          priority: tasks.priority,
+          createdAt: tasks.createdAt,
+        })
         .from(tasks)
         .where(eq(tasks.projectId, projectId))
+        .leftJoin(users, eq(tasks.assigneeId, users.id))
         .orderBy(desc(tasks.priority), desc(tasks.createdAt))
     );
     if (taskListError) {

@@ -60,7 +60,7 @@ function TaskRow({
   const status = statusConfig.find((s) => s.value === task.status);
   const priority =
     priorityConfig.find((p) => p.value === task.priority) ?? priorityConfig[0];
-  const dueDate = formatDueDate(task.dueDate);
+  const dueDate = task.dueDate ? formatDueDate(task.dueDate) : null;
   const taskShortId = task.id.slice(0, 8).toUpperCase();
 
   const handleNavigate = () => {
@@ -98,13 +98,13 @@ function TaskRow({
           </span>
         )}
 
-        {task.assigneeId ? (
+        {task.assigneeName ? (
           <div
             className="flex size-5 shrink-0 items-center justify-center rounded-full bg-amber-500 text-white"
             title={task.assigneeId}
           >
             <span className="font-semibold text-[10px] leading-none">
-              {usernameInitials}
+              {task.assigneeName?.slice(0, 2).toUpperCase() ?? "?"}
             </span>
           </div>
         ) : (
