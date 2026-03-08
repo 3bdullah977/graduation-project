@@ -294,6 +294,8 @@ export default function IssuesKanban({
     }) => updateProjectTask(workspace?.id ?? "", projectId, taskId, { status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["all-tasks", workspace?.id] });
+      queryClient.invalidateQueries({ queryKey: ["my-tasks", workspace?.id] });
     },
     onError: () => {
       toast.error("Failed to update task status");
@@ -368,6 +370,30 @@ export default function IssuesKanban({
     setTasks((prev) =>
       prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t))
     );
+    queryClient.setQueryData<ProjectTask[]>(
+      ["tasks", projectId],
+      (prev) =>
+        prev?.map((t) =>
+          t.id === task.id ? { ...t, status: newStatus } : t
+        ) ?? []
+    );
+    queryClient.setQueryData<ProjectTask[]>(
+      ["all-tasks", workspace?.id],
+      (prev) =>
+        prev?.map((t) =>
+          t.id === task.id ? { ...t, status: newStatus } : t
+        ) ?? []
+    );
+    queryClient.setQueryData<ProjectTask[]>(
+      ["my-tasks", workspace?.id],
+      (prev) =>
+        prev?.map((t) =>
+          t.id === task.id ? { ...t, status: newStatus } : t
+        ) ?? []
+    );
+    queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+    queryClient.invalidateQueries({ queryKey: ["all-tasks", workspace?.id] });
+    queryClient.invalidateQueries({ queryKey: ["my-tasks", workspace?.id] });
     updateStatus({ taskId: task.id, status: newStatus });
   }
 
