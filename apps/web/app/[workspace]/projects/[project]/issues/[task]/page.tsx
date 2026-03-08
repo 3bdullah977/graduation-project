@@ -23,8 +23,8 @@ import {
   updateProjectTask,
 } from "@/lib/projects";
 import { findWorkspaceBySlug } from "@/lib/workspace";
+import { AssignUserPopover } from "../../../../../../components/assign-user-popover";
 import StatusPriority from "../../../_components/status-priority";
-import { AssignUserPopover } from "./_components/assign-user-popover";
 
 function PropertyRow({
   icon,
@@ -128,6 +128,12 @@ export default function TaskPage() {
     onSuccess: () => {
       toast.success("Task updated");
       queryClient.invalidateQueries({ queryKey: ["projectTask", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["all-tasks", workspaceData?.id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["my-tasks", workspaceData?.id],
+      });
     },
     onError: () => {
       toast.error("Failed to update task");

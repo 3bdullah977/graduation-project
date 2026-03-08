@@ -11,6 +11,7 @@ export type ProjectStatus =
 export type Project = {
   id: string;
   name: string;
+  leadId: string;
   description: string | null;
   status: ProjectStatus;
   priority: number;
@@ -69,6 +70,7 @@ export type UpdateProjectData = {
   priority?: number;
   startDate?: Date;
   endDate?: Date;
+  leadId?: string;
 };
 
 export const updateProject = async (
@@ -181,6 +183,18 @@ export const updateProjectTask = async (
       method: "PUT",
       data,
     }
+  );
+  return res.data;
+};
+
+export const deleteProjectTask = async (
+  workspaceId: string,
+  projectId: string,
+  taskId: string
+) => {
+  const res = await authFetch<{ taskId: string }>(
+    `${BACKEND_URL}/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`,
+    { method: "DELETE" }
   );
   return res.data;
 };

@@ -5,6 +5,7 @@ import { CalendarRange, Gauge, Signal, User } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { AssignUserPopover } from "@/components/assign-user-popover";
 import { Loading } from "@/components/loading";
 import { Textarea } from "@/components/ui/textarea";
 import { attempt } from "@/lib/error-handling";
@@ -53,6 +54,7 @@ export default function ProjectOverview() {
   const [selectedPriority, setSelectedPriority] = useState<
     number | undefined
   >();
+  const [selectedLead, setSelectedLead] = useState<string | undefined>();
 
   const stateRef = useRef({
     name: projectName,
@@ -61,6 +63,7 @@ export default function ProjectOverview() {
     priority: selectedPriority,
     startDate,
     targetDate,
+    leadId: selectedLead,
   });
   stateRef.current = {
     name: projectName,
@@ -69,6 +72,7 @@ export default function ProjectOverview() {
     priority: selectedPriority,
     startDate,
     targetDate,
+    leadId: selectedLead,
   };
 
   const isInitialized = useRef(false);
@@ -138,7 +142,9 @@ export default function ProjectOverview() {
     },
     onSuccess: () => {
       toast.success("Project updated");
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({
+        queryKey: ["project", workspaceData?.id, projectId],
+      });
     },
     onError: () => {
       toast.error("Failed to update project");
@@ -156,6 +162,7 @@ export default function ProjectOverview() {
       priority: s.priority,
       startDate: s.startDate,
       endDate: s.targetDate,
+      leadId: s.leadId,
     };
   };
 
@@ -177,6 +184,11 @@ export default function ProjectOverview() {
   const handleTargetDateChange = (date: Date) => {
     setTargetDate(date);
     updateMutation.mutate(buildPayload({ targetDate: date }));
+  };
+
+  const handleLeadChange = (userId: string | null) => {
+    setSelectedLead(userId ?? undefined);
+    updateMutation.mutate(buildPayload({ leadId: userId ?? undefined }));
   };
 
   useEffect(() => {
@@ -202,6 +214,7 @@ export default function ProjectOverview() {
         priority: s.priority,
         startDate: s.startDate,
         endDate: s.targetDate,
+        leadId: s.leadId,
       });
     }, 1500);
 
@@ -248,9 +261,11 @@ export default function ProjectOverview() {
         </PropertyRow>
 
         <PropertyRow icon={<User className="size-4" />} label="Lead">
-          <span className="text-muted-foreground text-sm">
-            No lead assigned
-          </span>
+          <AssignUserPopover
+            currentAssigneeId={projectData?.leadId ?? undefined}
+            onAssign={handleLeadChange}
+            workspaceId={workspaceData?.id ?? ""}
+          />
         </PropertyRow>
 
         <PropertyRow icon={<Signal className="size-4" />} label="Progress">

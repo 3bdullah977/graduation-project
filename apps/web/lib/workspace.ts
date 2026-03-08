@@ -1,5 +1,6 @@
 import { authFetch } from "./auth-fetch";
 import { BACKEND_URL } from "./constants";
+import { ProjectTask } from "./projects";
 
 export type Workspace = {
   id: string;
@@ -100,6 +101,26 @@ export const updateMemberRole = async (
     {
       method: "PUT",
       data: { role },
+    }
+  );
+  return res.data;
+};
+
+export const getMyTasks = async (workspaceId: string) => {
+  const res = await authFetch<{ tasks: ProjectTask[] }>(
+    `${BACKEND_URL}/workspaces/${workspaceId}/my-tasks`,
+    {
+      method: "GET",
+    }
+  );
+  return res.data;
+};
+
+export const getAllTasks = async (workspaceId: string) => {
+  const res = await authFetch<{ tasks: ProjectTask[] }>(
+    `${BACKEND_URL}/workspaces/${workspaceId}/all-tasks`,
+    {
+      method: "GET",
     }
   );
   return res.data;
