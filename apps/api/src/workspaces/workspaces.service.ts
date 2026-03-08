@@ -8,11 +8,33 @@ import {
 import { and, count, desc, eq, inArray, or } from "drizzle-orm";
 import { ok } from "@/common/response";
 import { db } from "@/db";
-import { users, workspaceMembers, workspaces } from "@/db/schema";
+import { tasks, users, workspaceMembers, workspaces } from "@/db/schema";
 import { attempt } from "@/lib/error-handling";
 
 @Injectable()
 export class WorkspacesService {
+  async getAllTasks(workspaceId: string) {
+    const [tasksResult, error] = await attempt(
+      db
+        .select({
+          id: tasks.id,
+          name: tasks.name,
+          description: tasks.description,
+          assigneeId: tasks.assigneeId,
+          status: tasks.status,
+          dueDate: tasks.dueDate,
+          priority: tasks.priority,
+        })
+        .from(tasks)
+        .where(eq(tasks.workspaceId, workspaceId))
+        .orderBy(desc(tasks.priority), desc(tasks.createdAt))
+    );
+    if (error) {
+      throw new InternalServerErrorException("Failed to get all tasks");
+    }
+    return ok({ tasks: tasksResult ?? [] });
+  }
+
   async createWorkspace(
     workspaceName: string,
     workspaceSlug: string,
@@ -326,5 +348,29 @@ export class WorkspacesService {
       throw new InternalServerErrorException("Failed to update member role");
     }
     return ok({ success: true });
+  }
+
+  async getMyTasks(workspaceId: string, userId: string) {
+    const [tasksResult, error] = await attempt(
+      db
+        .select({
+          id: tasks.id,
+          name: tasks.name,
+          description: tasks.description,
+          projectId: tasks.projectId,
+          assigneeId: tasks.assigneeId,
+          status: tasks.status,
+          dueDate: tasks.dueDate,
+        })
+        .from(tasks)
+        .where(
+          and(eq(tasks.workspaceId, workspaceId), eq(tasks.assigneeId, userId))
+        )
+        .orderBy(desc(tasks.priority), desc(tasks.createdAt))
+    );
+    if (error) {
+      throw new InternalServerErrorException("Failed to get my tasks");
+    }
+    return ok({ tasks: tasksResult ?? [] });
   }
 }

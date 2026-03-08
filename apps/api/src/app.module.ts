@@ -4,8 +4,8 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { auth } from "./lib/auth";
 import { ProjectsModule } from "./projects/projects.module";
+import { UsersModule } from "./users/users.module";
 import { WorkspacesModule } from "./workspaces/workspaces.module";
-import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [

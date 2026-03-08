@@ -104,4 +104,21 @@ export class WorkspacesController {
       body.role
     );
   }
+
+  @Get(":workspaceId/my-tasks")
+  async getMyTasks(
+    @Param("workspaceId", ParseUUIDPipe) workspaceId: string,
+    @Session() session: UserSession
+  ) {
+    return await this.workspacesService.getMyTasks(
+      workspaceId,
+      session.user.id
+    );
+  }
+  @Get(":workspaceId/all-tasks")
+  async getAllTasks(
+    @Param("workspaceId", ParseUUIDPipe) workspaceId: string,
+  ) {
+    return await this.workspacesService.getAllTasks(workspaceId);
+  }
 }
