@@ -56,22 +56,6 @@ type NavItem = {
   items?: NavSubItem[];
 };
 
-function Badge({ badge }: { badge: string | number }) {
-  return (
-    <span className="min-w-5 rounded-full bg-primary px-1.5 py-0.5 text-center font-medium text-primary-foreground text-xs">
-      {badge}
-    </span>
-  );
-}
-
-function SubBadge({ badge }: { badge: string | number }) {
-  return (
-    <span className="min-w-5 rounded-full bg-primary/10 px-1.5 py-0.5 text-center font-medium text-primary text-xs">
-      {badge}
-    </span>
-  );
-}
-
 function SimpleNavItem({ item }: { item: NavItem }) {
   const iconColor = iconColors[item.title] ?? "text-muted-foreground";
 
@@ -99,7 +83,6 @@ function SimpleNavItem({ item }: { item: NavItem }) {
             />
           ) : null}
           <span className="flex-1">{item.title}</span>
-          {item.badge ? <Badge badge={item.badge} /> : null}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -119,7 +102,6 @@ function NestedNavItem({ nestedItem }: { nestedItem: NestedNavItem }) {
       >
         <Link className="flex items-center gap-2" href={nestedItem.url}>
           <span className="flex-1">{nestedItem.title}</span>
-          {nestedItem.badge ? <SubBadge badge={nestedItem.badge} /> : null}
         </Link>
       </SidebarMenuSubButton>
     </SidebarMenuSubItem>
@@ -156,11 +138,6 @@ function CollapsibleSubItem({ subItem }: { subItem: NavSubItem }) {
                 />
               ) : null}
               <span className="flex-1 text-left">{subItem.title}</span>
-              {subItem.badge ? (
-                <span className="mr-1 min-w-5 rounded-full bg-primary/10 px-1.5 py-0.5 text-center font-medium text-primary text-xs">
-                  {subItem.badge}
-                </span>
-              ) : null}
               <ChevronRight className="ml-auto size-3 text-muted-foreground transition-transform duration-200 group-data-[state=open]/nested:rotate-90" />
             </SidebarMenuSubButton>
           </CollapsibleTrigger>
@@ -197,7 +174,6 @@ function CollapsibleSubItem({ subItem }: { subItem: NavSubItem }) {
             />
           ) : null}
           <span className="flex-1">{subItem.title}</span>
-          {subItem.badge ? <SubBadge badge={subItem.badge} /> : null}
         </Link>
       </SidebarMenuSubButton>
     </SidebarMenuSubItem>
@@ -233,11 +209,6 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
               />
             ) : null}
             <span className="flex-1 text-left">{item.title}</span>
-            {item.badge ? (
-              <span className="mr-1 min-w-5 rounded-full bg-primary px-1.5 py-0.5 text-center font-medium text-primary-foreground text-xs">
-                {item.badge}
-              </span>
-            ) : null}
             <ChevronRight className="ml-auto size-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
           </SidebarMenuButton>
         </CollapsibleTrigger>
