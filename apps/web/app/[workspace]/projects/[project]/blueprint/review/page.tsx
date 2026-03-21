@@ -5,19 +5,13 @@ import {
   CheckSquare,
   ChevronRight,
   ClipboardCopy,
-  Code2,
   GitBranch,
-  Layers,
-  Lightbulb,
   RefreshCw,
   Sparkles,
-  Tag,
-  TrendingUp,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loading } from "@/components/loading";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { convertBlueprintToTasks, getBlueprint } from "@/lib/blueprint";
 import { attempt } from "@/lib/error-handling";
@@ -66,7 +60,7 @@ export default function BlueprintReviewPage() {
   if (!data) {
     return (
       <div className="mx-auto flex max-w-3xl flex-col items-start gap-4 py-10">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+        <div className="flex h-10 w-10 items-center justify-center border bg-muted">
           <Sparkles className="size-5 text-muted-foreground" />
         </div>
         <div className="space-y-1">
@@ -91,6 +85,8 @@ export default function BlueprintReviewPage() {
 
   const blueprint = data.blueprint;
   const feasibility = blueprint.feasibility;
+  const overallScore = feasibility.overallScore;
+  const scoreColor = getScoreTextColor(overallScore);
 
   async function handleConvertToTasks() {
     const [result, error] = await attempt(
@@ -103,52 +99,55 @@ export default function BlueprintReviewPage() {
     toast.success(`Created ${result.data.created} tasks from core features`);
   }
 
-  const overallScore = feasibility.overallScore;
-  const scoreColor = getScoreTextColor(overallScore);
-  const scoreBg = getScoreBgColor(overallScore);
+  const feasibilityMetrics = [
+    { label: "Uniqueness", value: feasibility.uniqueness },
+    { label: "Stickiness", value: feasibility.stickiness },
+    { label: "Growth Trend", value: feasibility.growthTrend },
+    { label: "Pricing Potential", value: feasibility.pricingPotential },
+    { label: "Upsell Potential", value: feasibility.upsellPotential },
+    { label: "Customer Power", value: feasibility.customerPurchasingPower },
+  ];
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 py-6">
-      {/* Header */}
-      <header className="flex flex-col gap-4 rounded-lg border bg-card p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
-                <Sparkles className="size-3.5 text-primary" />
-              </div>
-              <h1 className="font-semibold text-xl">{blueprint.projectName}</h1>
-            </div>
+    <div className="mx-auto w-full max-w-4xl">
+      {/* ── MASTHEAD ─────────────────────────────────────────────── */}
+      <header className="border-b pt-2 pb-6">
+        <div className="mb-3 flex items-center gap-2">
+          <span className="text-[9px] text-muted-foreground uppercase tracking-[0.25em]">
+            Blueprint
+          </span>
+          <span className="text-muted-foreground/30">·</span>
+          <span className="text-[9px] text-muted-foreground uppercase tracking-[0.25em]">
+            Review
+          </span>
+        </div>
+
+        <div className="flex items-start justify-between gap-6">
+          <div className="min-w-0 flex-1">
+            <h1 className="mb-2 font-bold text-2xl tracking-tight">
+              {blueprint.projectName}
+            </h1>
             <p className="max-w-2xl text-muted-foreground text-sm leading-relaxed">
               {blueprint.summary}
             </p>
           </div>
 
-          <div
-            className={cn(
-              "flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2",
-              scoreBg
-            )}
-          >
-            <TrendingUp className={cn("size-4", scoreColor)} />
-            <div>
-              <p className="text-[10px] text-muted-foreground leading-none">
-                Feasibility
-              </p>
-              <p
-                className={cn(
-                  "font-bold text-base tabular-nums leading-tight",
-                  scoreColor
-                )}
-              >
-                {overallScore.toFixed(1)}
-                <span className="font-normal text-xs opacity-70">/10</span>
-              </p>
+          <div className="min-w-[88px] shrink-0 border p-4 text-center">
+            <div
+              className={cn(
+                "font-bold text-4xl tabular-nums leading-none",
+                scoreColor
+              )}
+            >
+              {overallScore.toFixed(1)}
+            </div>
+            <div className="mt-1.5 text-[9px] text-muted-foreground uppercase tracking-[0.2em]">
+              Feasibility
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 border-t pt-4">
+        <div className="mt-5 flex flex-wrap items-center gap-2">
           <Button className="gap-1.5" onClick={handleConvertToTasks} size="sm">
             <CheckSquare className="size-3.5" />
             Convert to tasks
@@ -179,187 +178,167 @@ export default function BlueprintReviewPage() {
         </div>
       </header>
 
-      {/* Feasibility + Improvements */}
-      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-        <div className="space-y-3 rounded-lg border bg-card p-4">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="size-3.5 text-muted-foreground" />
-            <h2 className="font-semibold text-sm">Market feasibility</h2>
-          </div>
-          <div className="space-y-2.5">
-            {[
-              { label: "Uniqueness", value: feasibility.uniqueness },
-              { label: "Stickiness", value: feasibility.stickiness },
-              { label: "Growth trend", value: feasibility.growthTrend },
-              {
-                label: "Pricing potential",
-                value: feasibility.pricingPotential,
-              },
-              { label: "Upsell potential", value: feasibility.upsellPotential },
-              {
-                label: "Customer power",
-                value: feasibility.customerPurchasingPower,
-              },
-            ].map(({ label, value }) => (
-              <ScoreBar key={label} label={label} value={value} />
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-3 rounded-lg border bg-card p-4">
-          <div className="flex items-center gap-2">
-            <Lightbulb className="size-3.5 text-muted-foreground" />
-            <h2 className="font-semibold text-sm">Improvement suggestions</h2>
-          </div>
-          <ul className="space-y-2">
-            {blueprint.improvementSuggestions.map((item, index) => (
-              <li
-                className="flex gap-2.5 rounded-md border bg-background px-3 py-2 text-sm"
-                key={index.toString()}
-              >
-                <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-[10px] text-primary">
-                  {index + 1}
-                </span>
-                <span className="text-sm leading-relaxed">{item}</span>
-              </li>
-            ))}
-          </ul>
+      {/* ── 01 — MARKET FEASIBILITY ───────────────────────────────── */}
+      <SectionHeader label="Market Feasibility" number="01" />
+      <div className="border-b py-5">
+        <div className="space-y-3">
+          {feasibilityMetrics.map(({ label, value }) => (
+            <ScoreRow key={label} label={label} value={value} />
+          ))}
         </div>
       </div>
 
-      {/* Core Features + Tech Stack */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-3 rounded-lg border bg-card p-4">
-          <div className="flex items-center gap-2">
-            <Layers className="size-3.5 text-muted-foreground" />
-            <h2 className="font-semibold text-sm">Core features</h2>
-          </div>
-          <ul className="space-y-2">
-            {blueprint.coreFeatures.map((feature, index) => (
-              <li
-                className="rounded-md border bg-background px-3 py-2.5"
-                key={index.toString()}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded bg-muted font-semibold text-[10px] text-muted-foreground tabular-nums">
-                    {index + 1}
-                  </span>
-                  <p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-                    {feature.title}
-                  </p>
-                </div>
-                <p className="mt-1.5 text-sm">{feature.description}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="space-y-3 rounded-lg border bg-card p-4">
-          <div className="flex items-center gap-2">
-            <Code2 className="size-3.5 text-muted-foreground" />
-            <h2 className="font-semibold text-sm">Recommended tech stack</h2>
-          </div>
-          <div className="space-y-3">
-            <StackGroup
-              color={"blue" as const}
-              items={blueprint.techStack.frontend}
-              label="Frontend"
-            />
-            <StackGroup
-              color={"violet" as const}
-              items={blueprint.techStack.backend}
-              label="Backend"
-            />
-            <StackGroup
-              color={"orange" as const}
-              items={blueprint.techStack.database}
-              label="Database"
-            />
-            <StackGroup
-              color={"pink" as const}
-              items={blueprint.techStack.ai}
-              label="AI & tooling"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Pricing + DDL */}
-      <div className="grid gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.8fr)]">
-        <div className="space-y-3 rounded-lg border bg-card p-4">
-          <div className="flex items-center gap-2">
-            <Tag className="size-3.5 text-muted-foreground" />
-            <h2 className="font-semibold text-sm">Pricing model</h2>
-          </div>
-          <div className="space-y-2">
-            {blueprint.pricingModel.map((tier, index) => (
-              <div
-                className={cn(
-                  "rounded-md border bg-background px-3 py-2.5",
-                  index === 1 && "border-primary/30 bg-primary/5"
-                )}
-                key={index.toString()}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-xs uppercase tracking-wide">
-                      {tier.tier}
-                    </span>
-                    {index === 1 && (
-                      <Badge className="h-4 rounded-full px-1.5 text-[10px]">
-                        Popular
-                      </Badge>
-                    )}
-                  </div>
-                  <span className="font-medium font-mono text-muted-foreground text-xs">
-                    {tier.price}
-                  </span>
-                </div>
-                <ul className="mt-2 space-y-0.5">
-                  {tier.features.map((f, i) => (
-                    <li
-                      className="flex items-start gap-1.5 text-muted-foreground text-xs"
-                      key={i.toString()}
-                    >
-                      <span className="mt-0.5 shrink-0 text-emerald-500">
-                        ✓
-                      </span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-3 rounded-lg border bg-card p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Code2 className="size-3.5 text-muted-foreground" />
-              <h2 className="font-semibold text-sm">PostgreSQL DDL</h2>
-            </div>
-            <Button
-              className="gap-1.5"
-              onClick={async () => {
-                await navigator.clipboard.writeText(blueprint.ddl);
-                toast.success("DDL copied to clipboard");
-              }}
-              size="sm"
-              variant="outline"
+      {/* ── 02 — IMPROVEMENT SUGGESTIONS ─────────────────────────── */}
+      <SectionHeader label="Improvement Suggestions" number="02" />
+      <div className="border-b py-1">
+        <ul>
+          {blueprint.improvementSuggestions.map((item, index) => (
+            <li
+              className="flex gap-4 border-b py-3 last:border-b-0"
+              key={index.toString()}
             >
-              <ClipboardCopy className="size-3.5" />
-              Copy
-            </Button>
-          </div>
-          <pre className="max-h-[380px] overflow-auto rounded-md bg-muted p-3 font-mono text-xs leading-relaxed">
-            {blueprint.ddl}
-          </pre>
+              <span className="w-6 shrink-0 pt-0.5 text-right font-bold text-[10px] text-muted-foreground/40 tabular-nums">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <p className="text-sm leading-relaxed">{item}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* ── 03 — CORE FEATURES ───────────────────────────────────── */}
+      <SectionHeader label="Core Features" number="03" />
+      <div className="border-b py-1">
+        <ul>
+          {blueprint.coreFeatures.map((feature, index) => (
+            <li
+              className="flex gap-4 border-b py-3.5 last:border-b-0"
+              key={index.toString()}
+            >
+              <span className="w-6 shrink-0 pt-0.5 text-right font-bold text-[10px] text-muted-foreground/40 tabular-nums">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <div className="min-w-0">
+                <p className="mb-1 font-semibold text-[10px] text-muted-foreground uppercase tracking-[0.15em]">
+                  {feature.title}
+                </p>
+                <p className="text-sm leading-relaxed">{feature.description}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* ── 04 — TECH STACK ──────────────────────────────────────── */}
+      <SectionHeader label="Recommended Tech Stack" number="04" />
+      <div className="border-b py-5">
+        <div className="space-y-3">
+          <StackRow
+            color="blue"
+            items={blueprint.techStack.frontend}
+            label="Frontend"
+          />
+          <StackRow
+            color="violet"
+            items={blueprint.techStack.backend}
+            label="Backend"
+          />
+          <StackRow
+            color="orange"
+            items={blueprint.techStack.database}
+            label="Database"
+          />
+          <StackRow
+            color="pink"
+            items={blueprint.techStack.ai}
+            label="AI & Tooling"
+          />
         </div>
       </div>
 
-      {/* Footer actions */}
-      <div className="flex flex-wrap items-center justify-end gap-2 border-t pt-4">
+      {/* ── 05 — PRICING MODEL ───────────────────────────────────── */}
+      <SectionHeader label="Pricing Model" number="05" />
+      <div className="border-b py-5">
+        <div
+          className="grid gap-px bg-border"
+          style={{
+            gridTemplateColumns: `repeat(${blueprint.pricingModel.length}, minmax(0, 1fr))`,
+          }}
+        >
+          {blueprint.pricingModel.map((tier, index) => (
+            <div
+              className={cn("bg-background p-4", index === 1 && "bg-primary/5")}
+              key={index.toString()}
+            >
+              <div className="mb-3 flex items-start justify-between gap-2">
+                <div>
+                  <div className="font-bold text-[9px] text-muted-foreground uppercase tracking-[0.2em]">
+                    {tier.tier}
+                  </div>
+                  <div className="mt-0.5 font-bold text-lg tabular-nums">
+                    {tier.price}
+                  </div>
+                </div>
+                {index === 1 && (
+                  <span className="border border-primary/40 px-1.5 py-0.5 font-semibold text-[9px] text-primary uppercase tracking-[0.15em]">
+                    Popular
+                  </span>
+                )}
+              </div>
+              <ul className="space-y-1.5">
+                {tier.features.map((f, i) => (
+                  <li
+                    className="flex items-start gap-2 text-muted-foreground text-xs"
+                    key={i.toString()}
+                  >
+                    <span className="mt-0.5 shrink-0 text-emerald-500">✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── 06 — DATABASE SCHEMA ─────────────────────────────────── */}
+      <SectionHeader label="Database Schema (PostgreSQL DDL)" number="06" />
+      <div className="border-b py-5">
+        <div className="mb-3 flex justify-end">
+          <Button
+            className="gap-1.5"
+            onClick={async () => {
+              await navigator.clipboard.writeText(blueprint.ddl);
+              toast.success("DDL copied to clipboard");
+            }}
+            size="sm"
+            variant="outline"
+          >
+            <ClipboardCopy className="size-3.5" />
+            Copy DDL
+          </Button>
+        </div>
+        <div className="max-h-[480px] overflow-auto border bg-muted/30">
+          <table className="w-full font-mono text-xs">
+            <tbody>
+              {blueprint.ddl.split("\n").map((line, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: DDL lines have no stable identifier
+                <tr className="group hover:bg-muted/60" key={`ddl-line-${i}`}>
+                  <td className="w-10 select-none border-border/40 border-r py-0.5 pr-4 pl-3 text-right text-muted-foreground/30 tabular-nums group-hover:text-muted-foreground/50">
+                    {i + 1}
+                  </td>
+                  <td className="whitespace-pre py-0.5 pr-3 pl-4 text-foreground/85">
+                    {line || " "}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── FOOTER ───────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center justify-end gap-2 py-5">
         <Button
           className="gap-1.5"
           onClick={() =>
@@ -376,30 +355,122 @@ export default function BlueprintReviewPage() {
   );
 }
 
+// ─── Section Header ──────────────────────────────────────────────────────────
+
+function SectionHeader({ number, label }: { number: string; label: string }) {
+  return (
+    <div className="flex items-center gap-3 py-4">
+      <span className="shrink-0 font-bold text-[10px] text-muted-foreground/40 tabular-nums tracking-widest">
+        {number}
+      </span>
+      <div className="h-3 w-px bg-border" />
+      <h2 className="shrink-0 font-semibold text-[10px] uppercase tracking-[0.2em]">
+        {label}
+      </h2>
+      <div className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
+// ─── Score Row ────────────────────────────────────────────────────────────────
+
+function ScoreRow({ label, value }: { label: string; value: number }) {
+  const pct = Math.min(100, (value / 10) * 100);
+
+  return (
+    <div className="flex items-center gap-4">
+      <div className="w-36 shrink-0 text-[10px] text-muted-foreground uppercase tracking-[0.08em]">
+        {label}
+      </div>
+      <div className="h-1 flex-1 overflow-hidden bg-muted">
+        <div
+          className={cn(
+            "h-full transition-all duration-700",
+            getScoreBarColor(value)
+          )}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span
+        className={cn(
+          "w-8 shrink-0 text-right font-bold text-xs tabular-nums",
+          getScoreValueTextColor(value)
+        )}
+      >
+        {value.toFixed(1)}
+      </span>
+    </div>
+  );
+}
+
+// ─── Stack Row ────────────────────────────────────────────────────────────────
+
 type StackColor = "blue" | "violet" | "orange" | "pink";
 
-const STACK_COLORS: Record<StackColor, { badge: string; dot: string }> = {
+const STACK_COLORS: Record<StackColor, { badge: string; label: string }> = {
   blue: {
     badge:
       "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800",
-    dot: "bg-blue-500",
+    label: "text-blue-600 dark:text-blue-400",
   },
   violet: {
     badge:
       "bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800",
-    dot: "bg-violet-500",
+    label: "text-violet-600 dark:text-violet-400",
   },
   orange: {
     badge:
       "bg-orange-500/10 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800",
-    dot: "bg-orange-500",
+    label: "text-orange-600 dark:text-orange-400",
   },
   pink: {
     badge:
       "bg-pink-500/10 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-800",
-    dot: "bg-pink-500",
+    label: "text-pink-600 dark:text-pink-400",
   },
 };
+
+function StackRow({
+  label,
+  items,
+  color,
+}: {
+  label: string;
+  items: string[];
+  color: StackColor;
+}) {
+  if (!items.length) {
+    return null;
+  }
+  const colors = STACK_COLORS[color];
+  return (
+    <div className="flex items-baseline gap-4">
+      <div
+        className={cn(
+          "w-24 shrink-0 font-semibold text-[10px] uppercase tracking-[0.15em]",
+          colors.label
+        )}
+      >
+        {label}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((item) => (
+          <span
+            className={cn(
+              "border px-2 py-0.5 font-medium text-[11px]",
+              colors.badge
+            )}
+            key={item}
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Score Helpers ────────────────────────────────────────────────────────────
 
 function getScoreBarColor(value: number): string {
   if (value >= 7) {
@@ -421,16 +492,6 @@ function getScoreTextColor(value: number): string {
   return "text-red-500";
 }
 
-function getScoreBgColor(value: number): string {
-  if (value >= 7) {
-    return "bg-emerald-500/10";
-  }
-  if (value >= 5) {
-    return "bg-amber-500/10";
-  }
-  return "bg-red-500/10";
-}
-
 function getScoreValueTextColor(value: number): string {
   if (value >= 7) {
     return "text-emerald-600 dark:text-emerald-400";
@@ -439,69 +500,4 @@ function getScoreValueTextColor(value: number): string {
     return "text-amber-600 dark:text-amber-400";
   }
   return "text-red-600 dark:text-red-400";
-}
-
-function ScoreBar({ label, value }: { label: string; value: number }) {
-  const pct = Math.min(100, (value / 10) * 100);
-
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">{label}</span>
-        <span
-          className={cn(
-            "font-medium font-mono tabular-nums",
-            getScoreValueTextColor(value)
-          )}
-        >
-          {value.toFixed(1)}
-        </span>
-      </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className={cn(
-            "h-full rounded-full transition-all duration-500",
-            getScoreBarColor(value)
-          )}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function StackGroup({
-  label,
-  items,
-  color,
-}: {
-  label: string;
-  items: string[];
-  color: StackColor;
-}) {
-  if (!items.length) {
-    return null;
-  }
-  const colors = STACK_COLORS[color];
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-1.5">
-        <span className={cn("h-1.5 w-1.5 rounded-full", colors.dot)} />
-        <p className="font-medium text-muted-foreground text-xs">{label}</p>
-      </div>
-      <div className="flex flex-wrap gap-1.5">
-        {items.map((item) => (
-          <span
-            className={cn(
-              "rounded-full border px-2.5 py-0.5 font-medium text-[11px]",
-              colors.badge
-            )}
-            key={item}
-          >
-            {item}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
 }

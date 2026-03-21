@@ -24,10 +24,8 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { BACKEND_URL } from "@/lib/constants";
 import { attempt } from "@/lib/error-handling";
@@ -39,7 +37,6 @@ import {
 } from "./_components/generation-progress";
 
 const schema = z.object({
-  title: z.string().min(1, "Project title is required"),
   description: z
     .string()
     .min(30, "Please provide at least 30 characters describing your idea"),
@@ -52,28 +49,33 @@ const BLUEPRINT_OUTPUTS = [
     icon: Brain,
     label: "Market feasibility analysis",
     description: "Scores across 6 dimensions",
+    index: "01",
   },
   {
     icon: Layers,
     label: "Core features",
     description: "AI-identified product features",
+    index: "02",
   },
   {
     icon: FileCode2,
     label: "PostgreSQL DDL schema",
     description: "Ready-to-use database schema",
+    index: "03",
   },
   {
     icon: GitBranch,
     label: "Tech stack recommendations",
     description: "Frontend, backend, DB & AI",
+    index: "04",
   },
   {
     icon: Tag,
     label: "Pricing model & user flow",
     description: "Tiers and interactive diagram",
+    index: "05",
   },
-];
+] as const;
 
 export default function BlueprintInputPage() {
   const params = useParams();
@@ -97,10 +99,7 @@ export default function BlueprintInputPage() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      title: "",
-      description: "",
-    },
+    defaultValues: { description: "" },
     mode: "onChange",
   });
 
@@ -108,6 +107,7 @@ export default function BlueprintInputPage() {
   const [activeStep, setActiveStep] = useState<BlueprintStep | undefined>();
 
   const descriptionLength = form.watch("description").length;
+  const progressPct = Math.min((descriptionLength / 30) * 100, 100);
 
   async function onSubmit(values: FormValues) {
     if (isGenerating) {
@@ -120,7 +120,6 @@ export default function BlueprintInputPage() {
       const url = new URL(
         `${BACKEND_URL}/workspaces/${workspaceId}/projects/${projectId}/blueprint/generate`
       );
-      url.searchParams.set("title", values.title);
       url.searchParams.set("description", values.description);
 
       const eventSource = new EventSource(url.toString(), {
@@ -133,7 +132,6 @@ export default function BlueprintInputPage() {
             step?: BlueprintStep;
             status?: "in_progress" | "completed";
           };
-
           if (data.step) {
             setActiveStep(data.step);
           }
@@ -148,7 +146,6 @@ export default function BlueprintInputPage() {
             done?: boolean;
             blueprintId?: string;
           };
-
           if (data.done && data.blueprintId) {
             eventSource.close();
             router.push(
@@ -178,70 +175,86 @@ export default function BlueprintInputPage() {
   }
 
   return (
-    <div className="mx-auto mt-4 flex w-full max-w-6xl flex-col gap-8 py-6">
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between gap-2.5">
+    <div className="relative mx-auto mt-4 flex w-full max-w-6xl flex-col gap-7 py-6">
+      {/* Blueprint dot-grid ambient background */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.035] dark:opacity-[0.06]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, currentColor 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }}
+      />
+
+      {/* ── Header ── */}
+      <header className="relative flex items-start justify-between gap-4">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-              <Sparkles className="size-4 text-primary" />
-            </div>
-            <h1 className="font-semibold text-xl">AI Blueprint Generator</h1>
+            <span className="border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] text-primary uppercase tracking-widest">
+              AI System
+            </span>
+            <span className="text-[10px] text-muted-foreground/60 uppercase tracking-widest">
+              Blueprint Generator
+            </span>
           </div>
-          <Button
-            asChild
-            className="shrink-0 gap-1.5"
-            size="sm"
-            variant="outline"
-          >
-            <Link
-              href={`/${workspaceSlug}/projects/${projectId}/blueprint/review`}
-            >
-              <ScrollText className="size-3.5" />
-              View blueprint
-            </Link>
-          </Button>
+
+          <h1 className="font-bold text-2xl tracking-tight">
+            Describe your idea.
+          </h1>
+
+          <p className="max-w-lg text-muted-foreground text-sm">
+            From a single description, generate a complete product blueprint —
+            market analysis, features, tech stack, schema, and more.
+          </p>
         </div>
-        <p className="text-muted-foreground text-sm">
-          Describe your SaaS idea and get a complete product blueprint — market
-          analysis, features, tech stack, schema, and more.
-        </p>
+
+        <Button
+          asChild
+          className="mt-0.5 shrink-0 gap-1.5 border-dashed"
+          size="sm"
+          variant="outline"
+        >
+          <Link
+            href={`/${workspaceSlug}/projects/${projectId}/blueprint/review`}
+          >
+            <ScrollText className="size-3.5" />
+            View blueprint
+          </Link>
+        </Button>
+      </header>
+
+      {/* Divider */}
+      <div className="relative flex items-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-[10px] text-muted-foreground/40 uppercase tracking-widest">
+          Input
+        </span>
+        <div className="h-px w-6 bg-border" />
       </div>
 
+      {/* ── Form ── */}
       <Form {...form}>
         <form
           className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)]"
           onSubmit={form.handleSubmit(onSubmit)}
         >
-          <div className="space-y-5">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Project title</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={isGenerating}
-                      placeholder="e.g. UGC Central"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+          {/* Left: Textarea panel */}
+          <div className="flex flex-col">
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center justify-between">
-                    <FormLabel>Project description</FormLabel>
+                <FormItem className="gap-0 space-y-0">
+                  {/* Panel title bar */}
+                  <div className="flex items-center justify-between border border-border border-b-0 bg-muted/40 px-3 py-1.5">
+                    <span className="text-[10px] text-muted-foreground tracking-wide">
+                      idea_description.txt
+                    </span>
                     <span
                       className={cn(
-                        "text-xs tabular-nums transition-colors",
-                        descriptionLength === 0 && "text-muted-foreground/50",
+                        "text-[10px] tabular-nums tracking-wide transition-colors duration-300",
+                        descriptionLength === 0 && "text-muted-foreground/40",
                         descriptionLength > 0 &&
                           descriptionLength < 30 &&
                           "text-amber-500",
@@ -253,22 +266,44 @@ export default function BlueprintInputPage() {
                         : `${descriptionLength} chars`}
                     </span>
                   </div>
+
                   <FormControl>
                     <Textarea
-                      className="min-h-[220px] resize-none"
+                      className={cn(
+                        "min-h-[248px] resize-none border-border bg-background/60 font-mono text-sm",
+                        "placeholder:text-muted-foreground/35 focus-visible:ring-0",
+                        "transition-colors focus-visible:border-primary"
+                      )}
                       disabled={isGenerating}
-                      placeholder="Describe your target users, the problem you're solving, key features you envision, and any technical or business constraints…"
+                      placeholder={
+                        "// Describe your SaaS idea\n// — Who are your target users?\n// — What problem does it solve?\n// — What features do you envision?\n// — Any constraints or tech preferences?"
+                      }
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+
+                  {/* Character progress bar */}
+                  <div className="h-[2px] w-full overflow-hidden bg-border">
+                    <div
+                      className={cn(
+                        "h-full transition-all duration-500 ease-out",
+                        descriptionLength < 30
+                          ? "bg-amber-500"
+                          : "bg-emerald-500"
+                      )}
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+
+                  <FormMessage className="px-0 pt-1.5 text-xs" />
                 </FormItem>
               )}
             />
 
-            <div className="flex items-center justify-between pt-1">
-              <p className="text-muted-foreground text-xs">
-                More context = richer blueprint
+            {/* Toolbar row */}
+            <div className="flex items-center justify-between border border-border border-t-0 px-3 py-2">
+              <p className="text-[11px] text-muted-foreground/60">
+                More context → richer blueprint
               </p>
               <Button
                 className="gap-1.5"
@@ -281,41 +316,54 @@ export default function BlueprintInputPage() {
             </div>
           </div>
 
+          {/* Right: Outputs manifest or generation progress */}
           {isGenerating ? (
             <GenerationProgress activeStep={activeStep} />
           ) : (
-            <div className="flex flex-col gap-4 rounded-lg border bg-card p-5">
-              <div className="space-y-0.5">
-                <h2 className="font-semibold text-sm">What gets generated</h2>
-                <p className="text-muted-foreground text-xs">
-                  A complete SaaS product blueprint in one click
-                </p>
+            <div className="flex max-h-fit flex-col border border-border">
+              {/* Panel title bar */}
+              <div className="flex items-center justify-between border-border border-b bg-muted/40 px-3 py-1.5">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
+                  Output manifest
+                </span>
+                <span className="text-[10px] text-muted-foreground/40 tabular-nums">
+                  5 artifacts
+                </span>
               </div>
 
-              <div className="space-y-2">
-                {BLUEPRINT_OUTPUTS.map(({ icon: Icon, label, description }) => (
-                  <div
-                    className="flex items-start gap-3 rounded-md border bg-background px-3 py-2.5"
-                    key={label}
-                  >
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted">
-                      <Icon className="size-3.5 text-muted-foreground" />
+              {/* Output items */}
+              <div className="flex flex-col divide-y divide-border">
+                {BLUEPRINT_OUTPUTS.map(
+                  ({ icon: Icon, label, description, index }) => (
+                    <div
+                      className="group flex items-start gap-3 px-3 py-3 transition-colors hover:bg-muted/30"
+                      key={label}
+                    >
+                      <span className="mt-0.5 shrink-0 text-[10px] text-muted-foreground/40 tabular-nums">
+                        {index}
+                      </span>
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center border border-border bg-background">
+                        <Icon className="size-3 text-muted-foreground" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-xs leading-tight">
+                          {label}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {description}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-xs">{label}</p>
-                      <p className="text-muted-foreground text-xs">
-                        {description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
 
-              <div className="rounded-md bg-primary/5 px-3 py-2.5">
-                <p className="text-muted-foreground text-xs leading-relaxed">
-                  <span className="font-medium text-foreground">Tip:</span> The
-                  more detail you include — target users, problem, constraints —
-                  the more accurate and actionable your blueprint will be.
+              {/* Footer tip */}
+              <div className="mt-auto border-border border-t border-dashed px-3 py-2.5">
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  <span className="text-foreground">Tip —</span> Include target
+                  users, the core problem, and any constraints for the most
+                  actionable blueprint.
                 </p>
               </div>
             </div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { CheckCircle2, Circle, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const STEPS = [
   "Analyzing project description",
@@ -22,36 +23,24 @@ type GenerationProgressProps = {
   activeStep?: BlueprintStep;
 };
 
-function getStatusText(isIdle: boolean, isLastStep: boolean): string {
+function getStatusLabel(isIdle: boolean, isLastStep: boolean): string {
   if (isIdle) {
-    return "Steps will appear here once generation starts";
+    return "idle";
   }
   if (isLastStep) {
-    return "Almost done — wrapping up your blueprint…";
+    return "finalizing";
+  }
+  return "in_progress";
+}
+
+function getStatusText(isIdle: boolean, isLastStep: boolean): string {
+  if (isIdle) {
+    return "Awaiting input…";
+  }
+  if (isLastStep) {
+    return "Wrapping up your blueprint…";
   }
   return "AI is working on your blueprint…";
-}
-
-function getStepCircleClass(isCompleted: boolean, isActive: boolean): string {
-  const base =
-    "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-all duration-300";
-  if (isCompleted) {
-    return `${base} border-emerald-500 bg-emerald-500/10`;
-  }
-  if (isActive) {
-    return `${base} border-primary bg-primary/10`;
-  }
-  return `${base} border-border bg-transparent`;
-}
-
-function getStepTextClass(isCompleted: boolean, isActive: boolean): string {
-  if (isCompleted) {
-    return "pt-0.5 pb-3 text-xs transition-colors duration-300 text-emerald-600 dark:text-emerald-400";
-  }
-  if (isActive) {
-    return "pt-0.5 pb-3 text-xs transition-colors duration-300 font-medium text-foreground";
-  }
-  return "pt-0.5 pb-3 text-xs transition-colors duration-300 text-muted-foreground";
 }
 
 function StepIcon({
@@ -62,60 +51,102 @@ function StepIcon({
   isActive: boolean;
 }) {
   if (isCompleted) {
-    return <CheckCircle2 className="size-3 text-emerald-500" />;
+    return <CheckCircle2 className="size-3.5 text-emerald-500" />;
   }
   if (isActive) {
-    return <Loader2 className="size-3 animate-spin text-primary" />;
+    return <Loader2 className="size-3.5 animate-spin text-primary" />;
   }
-  return <Circle className="size-3 text-muted-foreground/30" />;
-}
-
-function StepConnector({ isCompleted }: { isCompleted: boolean }) {
-  const colorClass = isCompleted ? "bg-emerald-500/40" : "bg-border";
-  return (
-    <div
-      className={`w-px flex-1 transition-colors duration-500 ${colorClass}`}
-      style={{ minHeight: "1rem" }}
-    />
-  );
+  return <div className="size-3 border border-border" />;
 }
 
 export function GenerationProgress({ activeStep }: GenerationProgressProps) {
   const activeIndex = activeStep ? STEPS.indexOf(activeStep) : -1;
   const isIdle = !activeStep;
   const isLastStep = activeIndex === STEPS.length - 1;
+  const completedCount = activeIndex < 0 ? 0 : activeIndex;
+
+  function getStatusColorClass(): string {
+    if (isIdle) {
+      return "text-muted-foreground/40";
+    }
+    if (isLastStep) {
+      return "animate-pulse text-primary";
+    }
+    return "animate-pulse text-amber-500";
+  }
+  const statusColorClass = getStatusColorClass();
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border bg-card p-5">
-      <div className="space-y-0.5">
-        <h2 className="font-semibold text-sm">Generation progress</h2>
-        <p className="text-muted-foreground text-xs">
-          {getStatusText(isIdle, isLastStep)}
-        </p>
+    <div className="flex flex-col border border-border">
+      {/* Panel title bar */}
+      <div className="flex items-center justify-between border-border border-b bg-muted/40 px-3 py-1.5">
+        <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
+          Generation log
+        </span>
+        <span
+          className={cn(
+            "text-[10px] tabular-nums transition-colors",
+            statusColorClass
+          )}
+        >
+          {getStatusLabel(isIdle, isLastStep)}
+        </span>
       </div>
 
-      <div className="space-y-0">
+      {/* Steps */}
+      <div className="flex flex-col divide-y divide-border/50">
         {STEPS.map((step, index) => {
           const isActive = activeStep === step;
           const isCompleted = activeIndex > index;
-          const hasConnector = index < STEPS.length - 1;
+          const isPending = !(isActive || isCompleted);
+          const stepNum = String(index + 1).padStart(2, "0");
 
           return (
-            <div className="flex gap-3" key={step}>
-              <div className="flex flex-col items-center">
-                <div className={getStepCircleClass(isCompleted, isActive)}>
-                  <StepIcon isActive={isActive} isCompleted={isCompleted} />
-                </div>
-                {hasConnector ? (
-                  <StepConnector isCompleted={isCompleted} />
-                ) : null}
+            <div
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 transition-colors duration-300",
+                isCompleted ? "bg-emerald-500/5" : null,
+                isActive ? "bg-primary/5" : null,
+                isPending ? "opacity-40" : null
+              )}
+              key={step}
+            >
+              <span className="w-4 shrink-0 text-[10px] text-muted-foreground/40 tabular-nums">
+                {stepNum}
+              </span>
+
+              <div className="flex h-4 w-4 shrink-0 items-center justify-center">
+                <StepIcon isActive={isActive} isCompleted={isCompleted} />
               </div>
-              <div className={getStepTextClass(isCompleted, isActive)}>
+
+              <span
+                className={cn(
+                  "text-[11px] transition-colors duration-300",
+                  isCompleted ? "text-emerald-600 dark:text-emerald-400" : null,
+                  isActive ? "font-medium text-foreground" : null,
+                  isPending ? "text-muted-foreground" : null
+                )}
+              >
                 {step}
-              </div>
+              </span>
             </div>
           );
         })}
+      </div>
+
+      {/* Progress footer */}
+      <div className="mt-auto space-y-1.5 border-border border-t border-dashed px-3 py-2.5">
+        <div className="h-[2px] w-full overflow-hidden bg-border">
+          <div
+            className="h-full bg-primary transition-all duration-700 ease-out"
+            style={{
+              width: `${(completedCount / STEPS.length) * 100}%`,
+            }}
+          />
+        </div>
+        <p className="text-[10px] text-muted-foreground">
+          {getStatusText(isIdle, isLastStep)}
+        </p>
       </div>
     </div>
   );
