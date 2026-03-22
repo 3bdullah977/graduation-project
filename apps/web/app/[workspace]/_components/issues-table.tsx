@@ -21,6 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -268,20 +269,20 @@ export default function IssuesTable({
                 </AccordionTrigger>
 
                 <div className="flex items-center border-border/40 border-l px-3">
-                  <button
-                    className="group/btn relative flex size-6 items-center justify-center overflow-hidden rounded border border-border bg-background shadow-sm transition-all hover:border-foreground hover:bg-foreground hover:text-background"
+                  <Button
+                    className="size-6"
                     onClick={() => {
                       setSelectedStatus(status.value);
                       setDialogOpen(true);
                     }}
-                    title={`Add ${status.label} issue`}
-                    type="button"
+                    size="icon"
+                    variant="outline"
                   >
                     <Plus
                       className="relative z-10 transition-transform group-hover/btn:rotate-90"
-                      size={12}
+                      size={8}
                     />
-                  </button>
+                  </Button>
                 </div>
               </div>
 
